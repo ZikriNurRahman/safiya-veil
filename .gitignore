@@ -42,3 +42,4 @@ next-env.d.ts
 
 .env.local
 repomix-output.xml
+next-features.md
