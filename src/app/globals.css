@@ -1,79 +1,131 @@
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* src/app/globals.css */
+/* Safiya Veil — brand color system */
+@import "tailwindcss";
+
+@theme inline {
+    --color-background: var(--background);
+    --color-foreground: var(--foreground);
+    --font-sans: var(--font-sans);
+    --font-heading: var(--font-heading);
+
+    /* Safiya Veil Brand Colors */
+    --color-brand-primary: #AD8B73;
+    /* warm taupe — primer */
+    --color-brand-secondary: #CEAB93;
+    /* soft caramel — sekunder */
+    --color-brand-tertiary: #E3CAA5;
+    /* sandy beige — tersier */
+    --color-brand-cream: #FFFBE9;
+    /* warm cream — latar */
+}
 :root {
-    --font-display: 'Playfair Display', Georgia, serif;
-    --font-body: 'DM Sans', system-ui, sans-serif;
-    --color-espresso: #1A1208;
-    --color-primary: #8B6F5C;
-    --color-secondary: #B8A08A;
-    --color-tertiary: #D4C4B0;
-    --color-cream: #FAF7F2;
-    --color-gold: #C9A96E;
-    --color-ivory: #F5F0E8;
+--background: #FFFBE9;
+    --foreground: #3D2B1F;
+
+    /* Safiya Veil brand palette */
+    --brand-primary: #AD8B73;
+    --brand-secondary: #CEAB93;
+    --brand-tertiary: #E3CAA5;
+    --brand-cream: #FFFBE9;
+    --brand-dark: #3D2B1F;
+    --brand-muted: #8C6E5A;
+
+    --radius: 0.75rem;
 }
 
-html {
-    scroll-behavior: smooth;
-}
+@layer base {
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
 
-body {
-    font-family: var(--font-body);
-    color: var(--color-espresso);
-    background-color: var(--color-cream);
+  body {
+    background-color: var(--background);
+        color: var(--foreground);
+        font-family: var(--font-sans), 'Georgia', serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+
+/* Scrollbar sesuai brand */
+    ::-webkit-scrollbar {
+    width: 6px;
+        height: 6px;
+    }
+  ::-webkit-scrollbar-track {
+    background: var(--brand-cream);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: var(--brand-secondary);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--brand-primary);
+        }
+        }
 }
 
-.font-display {
-    font-family: var(--font-display);
-}
-
-::selection {
-    background: var(--color-tertiary);
-    color: var(--color-espresso);
-}
-
-::-webkit-scrollbar {
-    width: 5px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--color-cream);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--color-tertiary);
-    border-radius: 0;
-}
-
+/* Animasi fade in untuk page load */
 @keyframes fadeInUp {
-    from {
+from {
         opacity: 0;
-        transform: translateY(30px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    transform: translateY(16px);
+    
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+}
 }
 
 .animate-fade-in-up {
-    animation: fadeInUp 1s ease-out forwards;
+animation: fadeInUp 0.5s ease forwards;
 }
 
-.line-clamp-1 {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+/* Stagger delay untuk grid produk */
+.stagger-1 {
+    animation-delay: 0.05s;
 }
 
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+.stagger-2 {
+    animation-delay: 0.10s;
+}
+
+.stagger-3 {
+    animation-delay: 0.15s;
+}
+
+.stagger-4 {
+    animation-delay: 0.20s;
+}
+
+.stagger-5 {
+    animation-delay: 0.25s;
+}
+
+.stagger-6 {
+    animation-delay: 0.30s;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+                100% {
+                    background-position: 200% 0;
+                }
+}
+
+/* Skeleton loading shimmer */
+.skeleton {
+    background: linear-gradient(90deg,
+            #E3CAA5 25%,
+            #CEAB93 50%,
+            #E3CAA5 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
 }
