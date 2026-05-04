@@ -11,10 +11,10 @@ import type { Order, OrderStatus } from '@/types/database'
 // Badge status dengan warna yang sesuai
 function StatusBadge({ status }: { status: OrderStatus }) {
   const map: Record<OrderStatus, { bg: string; color: string; label: string }> = {
-    PENDING:         { bg: '#FFF3CD', color: '#856404', label: 'Menunggu' },
+    PENDING: { bg: '#FFF3CD', color: '#856404', label: 'Menunggu' },
     PENDING_PAYMENT: { bg: '#CCE5FF', color: '#004085', label: 'Belum Bayar' },
-    COMPLETED:       { bg: '#D4EDDA', color: '#155724', label: 'Selesai' },
-    CANCELLED:       { bg: '#F8D7DA', color: '#721C24', label: 'Dibatalkan' },
+    COMPLETED: { bg: '#D4EDDA', color: '#155724', label: 'Selesai' },
+    CANCELLED: { bg: '#F8D7DA', color: '#721C24', label: 'Dibatalkan' },
   }
   const s = map[status]
   return (
@@ -26,11 +26,11 @@ function StatusBadge({ status }: { status: OrderStatus }) {
 }
 
 export default function AdminOrdersPage() {
-  const [orders,      setOrders]      = useState<Order[]>([])
-  const [loading,     setLoading]     = useState(true)
-  const [expandedId,  setExpandedId]  = useState<string | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [filterStatus, setFilterStatus] = useState<string>('Semua')
-  const [reportDate,  setReportDate]  = useState('') // kosong = semua tanggal
+  const [reportDate, setReportDate] = useState('') // kosong = semua tanggal
 
   // Fetch orders
   const fetchOrders = useCallback(async () => {
@@ -108,9 +108,9 @@ export default function AdminOrdersPage() {
               }}
             >
               {s === 'Semua' ? 'Semua'
-               : s === 'PENDING' ? 'Menunggu'
-               : s === 'COMPLETED' ? 'Selesai'
-               : 'Dibatalkan'}
+                : s === 'PENDING' ? 'Menunggu'
+                  : s === 'COMPLETED' ? 'Selesai'
+                    : 'Dibatalkan'}
             </button>
           ))}
         </div>
@@ -269,14 +269,7 @@ export default function AdminOrdersPage() {
                       {formatRupiah(order.total_price)}
                     </span>
                   </div>
-                  {order.payment_method === 'CASH' && order.cash_received > 0 && (
-                    <div className="flex justify-between mt-1">
-                      <span className="text-xs" style={{ color: '#8C6E5A' }}>Kembalian</span>
-                      <span className="text-xs font-medium" style={{ color: '#2E7D32' }}>
-                        {formatRupiah(Math.max(0, order.cash_received - order.total_price))}
-                      </span>
-                    </div>
-                  )}
+
                 </div>
               )}
             </div>
