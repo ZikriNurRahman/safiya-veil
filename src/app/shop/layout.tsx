@@ -79,11 +79,7 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
 
           {/* Aksi kanan */}
           <div className="flex items-center gap-4">
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2C1810" strokeWidth="1.6">
-                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
-              </svg>
-            </button>
+
 
             {/* ← Cart button: ganti div kosong jadi Link ke /shop/cart */}
             <Link href="/shop/cart" style={{ position: 'relative', color: '#2C1810', display: 'flex', alignItems: 'center' }}>

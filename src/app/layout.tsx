@@ -37,6 +37,7 @@ export default function RootLayout({
       lang="id"
       className={`${cormorant.variable} ${lato.variable} h-full antialiased`}
       style={{ fontFamily: 'var(--font-sans)' }}
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col bg-[#FFFBE9]">
         {children}

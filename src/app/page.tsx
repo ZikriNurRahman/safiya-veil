@@ -1,6 +1,6 @@
 // src/app/page.tsx
 // Root page — redirect ke /shop (publik) sebagai halaman utama
-// Middleware yang handle perlindungan halaman admin
+// proxy yang handle perlindungan halaman admin
 
 import { redirect } from 'next/navigation'
 

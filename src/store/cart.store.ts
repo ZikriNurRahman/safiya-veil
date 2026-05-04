@@ -1,6 +1,6 @@
 // src/store/cart.store.ts
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'  // ← tambah import ini
+import { persist } from 'zustand/middleware'
 import type { CartItem, Product, PaymentMethod, OrderType } from '@/types/database'
 
 interface CartStore {

@@ -21,7 +21,6 @@ export async function createServerSupabase() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server Components bisa gagal set cookie — middleware yang handle refresh
           }
         },
       },
