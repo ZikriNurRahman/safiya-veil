@@ -41,5 +41,9 @@ yarn-error.log*
 next-env.d.ts
 
 .env.local
-repomix-output.xml
 next-features.md
+
+# Repomix outputs
+repomix-output.xml
+repomix-output.txt
+repomix-output.json

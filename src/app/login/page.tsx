@@ -34,7 +34,6 @@ export default function LoginPage() {
 
     // Login berhasil → ke dashboard admin
     router.replace('/admin')
-    router.refresh()
   }
 
   return (

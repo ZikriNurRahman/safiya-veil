@@ -1,5 +1,5 @@
 /* src/app/globals.css */
-/* Safiya Veil — brand color system */
+/* Safiya Veil — updated brand color system */
 @import "tailwindcss";
 
 @theme inline {
@@ -7,30 +7,27 @@
     --color-foreground: var(--foreground);
     --font-sans: var(--font-sans);
     --font-heading: var(--font-heading);
-
-    /* Safiya Veil Brand Colors */
-    --color-brand-primary: #AD8B73;
-    /* warm taupe — primer */
-    --color-brand-secondary: #CEAB93;
-    /* soft caramel — sekunder */
-    --color-brand-tertiary: #E3CAA5;
-    /* sandy beige — tersier */
-    --color-brand-cream: #FFFBE9;
-    /* warm cream — latar */
 }
+
 :root {
---background: #FFFBE9;
-    --foreground: #3D2B1F;
+    --background: #FFEDDB;
+    --foreground: #2C1810;
 
-    /* Safiya Veil brand palette */
-    --brand-primary: #AD8B73;
-    --brand-secondary: #CEAB93;
-    --brand-tertiary: #E3CAA5;
-    --brand-cream: #FFFBE9;
-    --brand-dark: #3D2B1F;
-    --brand-muted: #8C6E5A;
-
-    --radius: 0.75rem;
+    /* Safiya Veil brand palette — NEW */
+    --brand-primary: #FFEDDB;
+    /* warm peach — latar utama */
+    --brand-secondary: #EDCDBB;
+    /* soft beige — sekunder */
+    --brand-tertiary: #E3B7A0;
+    /* soft terracotta — tersier */
+    --brand-accent: #BF9270;
+    /* rich taupe — aksen utama */
+    --brand-dark: #2C1810;
+    /* deep brown — teks & hero */
+    --brand-muted: #8B6652;
+    /* medium brown — teks sekunder */
+    --brand-white: #FFFAF5;
+    /* off-white — kartu */
 }
 
 @layer base {
@@ -40,92 +37,129 @@
         padding: 0;
     }
 
-  body {
-    background-color: var(--background);
+    body {
+        background-color: var(--background);
         color: var(--foreground);
         font-family: var(--font-sans), 'Georgia', serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
 
+    html {
+        scroll-behavior: smooth;
+    }
 
-/* Scrollbar sesuai brand */
     ::-webkit-scrollbar {
-    width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
     }
-  ::-webkit-scrollbar-track {
-    background: var(--brand-cream);
+
+    ::-webkit-scrollbar-track {
+        background: var(--brand-primary);
     }
-    
+
     ::-webkit-scrollbar-thumb {
-        background: var(--brand-secondary);
-            border-radius: 3px;
-        }
-        
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--brand-primary);
-        }
-        }
+        background: var(--brand-tertiary);
+        border-radius: 2px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--brand-accent);
+    }
 }
 
-/* Animasi fade in untuk page load */
-@keyframes fadeInUp {
-from {
-        opacity: 0;
-    transform: translateY(16px);
-    
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+/* ── Announcement bar marquee ──────────────────────────────── */
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-50%);
+    }
 }
+
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+}
+
+.marquee-track:hover {
+    animation-play-state: paused;
+}
+
+/* ── Animations ─────────────────────────────────────────────── */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(22px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .animate-fade-in-up {
-animation: fadeInUp 0.5s ease forwards;
+    animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
 }
 
-/* Stagger delay untuk grid produk */
-.stagger-1 {
-    animation-delay: 0.05s;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
 }
 
-.stagger-2 {
-    animation-delay: 0.10s;
+.animate-fade-in {
+    animation: fadeIn 0.4s ease forwards;
+    opacity: 0;
 }
 
-.stagger-3 {
-    animation-delay: 0.15s;
-}
-
-.stagger-4 {
-    animation-delay: 0.20s;
-}
-
-.stagger-5 {
-    animation-delay: 0.25s;
-}
-
-.stagger-6 {
-    animation-delay: 0.30s;
-}
-
+/* ── Skeleton shimmer ───────────────────────────────────────── */
 @keyframes shimmer {
     0% {
         background-position: -200% 0;
     }
 
-                100% {
-                    background-position: 200% 0;
-                }
+    100% {
+        background-position: 200% 0;
+    }
 }
 
-/* Skeleton loading shimmer */
 .skeleton {
-    background: linear-gradient(90deg,
-            #E3CAA5 25%,
-            #CEAB93 50%,
-            #E3CAA5 75%);
+    background: linear-gradient(90deg, #EDCDBB 25%, #E3B7A0 50%, #EDCDBB 75%);
     background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    animation: shimmer 1.6s infinite;
+}
+
+/* ── Stagger delays ─────────────────────────────────────────── */
+.stagger-1 {
+    animation-delay: 0.06s;
+}
+
+.stagger-2 {
+    animation-delay: 0.12s;
+}
+
+.stagger-3 {
+    animation-delay: 0.18s;
+}
+
+.stagger-4 {
+    animation-delay: 0.24s;
+}
+
+.stagger-5 {
+    animation-delay: 0.30s;
+}
+
+.stagger-6 {
+    animation-delay: 0.36s;
 }

@@ -1,17 +1,23 @@
 // src/middleware.ts
-// Middleware untuk proteksi route:
-// - /shop → publik, siapapun bisa akses tanpa login
-// - /admin → hanya OWNER yang sudah login
-// - /login → kalau sudah login redirect ke /admin
-
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Route publik — skip Supabase sama sekali, langsung lanjut
+  // Ini mencegah getUser() dipanggil untuk setiap request ke /shop
+  if (
+    pathname.startsWith('/shop') ||
+    pathname.startsWith('/auth/callback')
+  ) {
+    return NextResponse.next()
+  }
+
+  // Untuk /login dan /admin, baru setup Supabase client
   let supabaseResponse = NextResponse.next({ request })
 
-  // Buat Supabase client dengan cookie dari request
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -30,42 +36,38 @@ export async function middleware(request: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
 
-  // Halaman login — kalau sudah login redirect ke admin
+  // ── /login ──────────────────────────────────────────────────────────────
   if (pathname.startsWith('/login')) {
-    if (user) return NextResponse.redirect(new URL('/admin', request.url))
-    return supabaseResponse
-  }
+    if (!user) return supabaseResponse
 
-  // Halaman admin — wajib login dan harus OWNER
-  if (pathname.startsWith('/admin')) {
-    if (!user) return NextResponse.redirect(new URL('/admin', request.url))
-
-    // Cek role di database
     const { data: profile } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .single()
+      .from('profiles').select('role').eq('id', user.id).single()
 
-    // Bukan OWNER → tolak akses
-    // if (profile?.role !== 'OWNER') {
-    //   return NextResponse.redirect(new URL('/shop', request.url))
-    // }
-
+    if (profile?.role === 'OWNER') {
+      return NextResponse.redirect(new URL('/admin', request.url))
+    }
     return supabaseResponse
   }
 
-  // Auth callback — selalu boleh lewat
-  if (pathname.startsWith('/auth/callback')) return supabaseResponse
+  // ── /admin ───────────────────────────────────────────────────────────────
+  if (pathname.startsWith('/admin')) {
+    if (!user) return NextResponse.redirect(new URL('/login', request.url))
 
-  // Semua route lain (termasuk /shop) → publik, boleh lewat
+    const { data: profile } = await supabase
+      .from('profiles').select('role').eq('id', user.id).single()
+
+    if (!profile || profile.role !== 'OWNER') {
+      return NextResponse.redirect(new URL('/shop', request.url))
+    }
+    return supabaseResponse
+  }
+
   return supabaseResponse
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }

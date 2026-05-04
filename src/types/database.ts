@@ -1,16 +1,16 @@
 // src/types/database.ts
 // Safiya Veil — tipe data utama aplikasi
-// Disederhanakan dari kasir-dapur: tidak ada Branch, tidak ada role pegawai
-// Hanya OWNER yang bisa akses admin
+
+// ── SQL Migration (jalankan sekali di Supabase SQL Editor) ─────────────────
+// ALTER TABLE public.products
+//   ADD COLUMN IF NOT EXISTS colors jsonb NOT NULL DEFAULT '[]'::jsonb;
+// ──────────────────────────────────────────────────────────────────────────
 
 export type OrderStatus   = 'PENDING_PAYMENT' | 'PENDING' | 'COMPLETED' | 'CANCELLED'
-export type PaymentMethod = 'CASH' | 'QRIS' | 'TRANSFER'
-export type OrderType     = 'PICKUP' | 'DELIVERY'
-
-// Hanya dua role: OWNER (admin) atau tidak login sama sekali (publik)
+export type PaymentMethod = 'QRIS' | 'TRANSFER'
+export type OrderType = 'PICKUP' | 'DELIVERY'
 export type UserRole = 'OWNER'
 
-// Profile owner — hanya satu atau dua akun
 export interface Profile {
   id:           string
   role:         UserRole
@@ -18,7 +18,6 @@ export interface Profile {
   created_at:   string
 }
 
-// Kategori produk hijab
 export interface Category {
   id:         string
   name:       string
@@ -26,7 +25,6 @@ export interface Category {
   created_at: string
 }
 
-// Produk hijab
 export interface Product {
   id:           string
   name:         string
@@ -36,54 +34,65 @@ export interface Product {
   image_url:    string | null
   stock:        number
   is_available: boolean
+  colors: string[]
+  color_stocks: ColorStock[]   // ← baru: stok per warna
+  color_images: ColorImage[]   // ← baru: gambar per warna
   created_at:   string
 }
 
-// Item dalam order
 export interface OrderItem {
-  id:         string
-  order_id:   string
+  id: string
+  order_id: string
   product_id: string | null
   product_name: string
   unit_price: number
-  quantity:   number
-  notes:      string
+  quantity: number
+  notes: string
 }
 
-// Order dari customer
+export interface ColorStock {
+  color: string
+  stock: number
+}
+
+export interface ColorImage {
+  color: string
+  image_url: string
+}
+
 export interface Order {
-  id:             string
-  order_number:   string
-  customer_name:  string
+  id: string
+  order_number: string
+  customer_name: string
   customer_phone: string
   customer_address: string
-  order_type:     OrderType
-  total_price:    number
+  order_type: OrderType
+  total_price: number
   payment_method: PaymentMethod
-  status:         OrderStatus
-  cash_received:  number
-  notes:          string
-  created_at:     string
-  updated_at:     string
-  order_items?:   OrderItem[]
+  status: OrderStatus
+  cash_received: number
+  notes: string
+  created_at: string
+  updated_at: string
+  order_items?: OrderItem[]
 }
 
-// Setting toko
+// Store settings — phones & socials kini berupa array
 export interface StoreSettings {
   id:            number
   store_name:    string
   store_address: string
-  store_phone:   string
-  store_social:  string
+  store_phones: string[]  // max 3 nomor WhatsApp/telepon
+  store_socials: string[]  // max 5 sosial media
   footer_text:   string
   updated_at:    string
 }
 
-// Item di keranjang belanja (client-side only)
 export interface CartItem {
-  productId:   string
+  productId: string
   productName: string
-  unitPrice:   number
-  quantity:    number
-  notes:       string
+  unitPrice: number
+  quantity: number
+  notes: string
+  selectedColor?: string  // ← baru: warna yang dipilih
 }

@@ -1,125 +1,124 @@
 // src/app/shop/layout.tsx
-// Layout untuk halaman toko publik
-// Berisi navbar brand dan footer
+// Layout toko — lozy.id style:
+// • Announcement bar scrolling
+// • Header centered logo, nav kiri, aksi kanan
+// • Footer dinamis
+
+import { ShopFooter } from '@/components/shop/ShopFooter'
+import Link from 'next/link'
+
+const ANNOUNCEMENTS = [
+  '✦ Gratis ongkir min. pembelian Rp 150.000',
+  '✦ Bahan premium pilihan, nyaman sepanjang hari',
+  '✦ NEW ARRIVAL — Koleksi terbaru sudah tersedia!',
+  '✦ Pesan via WhatsApp tersedia 24 jam',
+]
 
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: '#FFFBE9' }}>
-      {/* ── Navbar ── */}
-      <header
-        className="sticky top-0 z-40 px-6 py-4"
-        style={{
-          background: 'rgba(255,251,233,0.92)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid #E3CAA5',
-        }}
-      >
-        <div className="max-w-6xl mx-auto flex items-center justify-between">
-          {/* Logo */}
-          <a href="/shop" className="flex items-center gap-3 group">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-transform group-hover:scale-105"
-              style={{ background: '#AD8B73' }}
-            >
-              <span style={{ fontFamily: 'var(--font-heading)', color: '#FFFBE9', fontSize: '18px', fontStyle: 'italic' }}>
-                S
-              </span>
-            </div>
-            <div>
-              <div
-                className="text-lg font-semibold leading-none"
-                style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F', letterSpacing: '0.05em' }}
-              >
-                Safiya Veil
-              </div>
-              <div className="text-xs leading-none mt-0.5" style={{ color: '#8C6E5A', fontStyle: 'italic' }}>
-                Grace in Style, Pure in Faith
-              </div>
-            </div>
-          </a>
+    <div className="min-h-screen flex flex-col" style={{ background: '#FFEDDB' }}>
 
-          {/* Nav links */}
-          <nav className="hidden sm:flex items-center gap-6">
-            <a
-              href="/shop"
-              className="text-sm font-medium transition-colors hover:opacity-70"
-              style={{ color: '#3D2B1F' }}
+      {/* ─────────────── ANNOUNCEMENT BAR ─────────────── */}
+      <div
+        className="overflow-hidden"
+        style={{ background: '#2C1810', height: 34, display: 'flex', alignItems: 'center' }}
+      >
+        <div className="marquee-track">
+          {[...ANNOUNCEMENTS, ...ANNOUNCEMENTS].map((txt, i) => (
+            <span
+              key={i}
+              style={{
+                fontSize: '0.62rem',
+                letterSpacing: '0.22em',
+                textTransform: 'uppercase',
+                color: '#EDCDBB',
+                padding: '0 2.5rem',
+                whiteSpace: 'nowrap',
+              }}
             >
-              Koleksi
-            </a>
-            <a
-              href="/shop#tentang"
-              className="text-sm font-medium transition-colors hover:opacity-70"
-              style={{ color: '#3D2B1F' }}
-            >
-              Tentang Kami
-            </a>
+              {txt}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ─────────────── HEADER ─────────────── */}
+      <header
+        className="sticky top-0 z-40"
+        style={{ background: '#FFEDDB', borderBottom: '1px solid #EDCDBB' }}
+      >
+        <div
+          className="relative max-w-7xl mx-auto px-5 flex items-center justify-between"
+          style={{ height: 66 }}
+        >
+          {/* Nav kiri — desktop */}
+          <nav className="hidden md:flex items-center gap-7">
+            {[
+              { label: 'Beranda', href: '/shop' },
+              { label: 'Koleksi', href: '/shop#koleksi' },
+              { label: 'Tentang', href: '/shop#tentang' },
+            ].map(l => (
+              <Link key={l.label} href={l.href} style={navStyle}>{l.label}</Link>
+            ))}
           </nav>
+
+          {/* Mobile: burger */}
+          <div className="md:hidden" style={{ color: '#2C1810', fontSize: '1.3rem', cursor: 'pointer' }}>
+            &#9776;
+          </div>
+
+          {/* Logo — tengah absolut */}
+          <Link href="/shop" className="absolute left-1/2 -translate-x-1/2" style={{ textDecoration: 'none', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem', fontWeight: 600, color: '#2C1810', letterSpacing: '0.14em', lineHeight: 1 }}>
+              SAFIYA VEIL
+            </div>
+            <div style={{ fontSize: '0.5rem', letterSpacing: '0.32em', textTransform: 'uppercase', color: '#BF9270', marginTop: 4 }}>
+              Grace in Style, Pure in Faith
+            </div>
+          </Link>
+
+          {/* Aksi kanan */}
+          <div className="flex items-center gap-4">
+            <button style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 4 }}>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#2C1810" strokeWidth="1.6">
+                <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+              </svg>
+            </button>
+
+            {/* ← Cart button: ganti div kosong jadi Link ke /shop/cart */}
+            <Link href="/shop/cart" style={{ position: 'relative', color: '#2C1810', display: 'flex', alignItems: 'center' }}>
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                <line x1="3" y1="6" x2="21" y2="6" />
+                <path d="M16 10a4 4 0 01-8 0" />
+              </svg>
+            </Link>
+          </div>
         </div>
       </header>
 
-      {/* ── Content ── */}
-      <main className="flex-1">
-        {children}
-      </main>
+      {/* ─────────────── CONTENT ─────────────── */}
+      <main className="flex-1">{children}</main>
 
-      {/* ── Footer ── */}
-      <footer
-        className="px-6 py-12 mt-16"
-        style={{ background: '#AD8B73' }}
-      >
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            {/* Brand */}
-            <div>
-              <div
-                className="text-2xl font-semibold mb-2"
-                style={{ fontFamily: 'var(--font-heading)', color: '#FFFBE9' }}
-              >
-                Safiya Veil
-              </div>
-              <p className="text-sm" style={{ color: '#E3CAA5', fontStyle: 'italic' }}>
-                Grace in Style, Pure in Faith
-              </p>
-              <p className="text-sm mt-3" style={{ color: '#E3CAA5' }}>
-                Koleksi hijab premium dengan sentuhan elegan dan nilai-nilai islami yang murni.
-              </p>
-            </div>
+      {/* ─────────────── FOOTER ─────────────── */}
+      <ShopFooter />
 
-            {/* Kontak */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#CEAB93' }}>
-                Hubungi Kami
-              </p>
-              <div className="space-y-1 text-sm" style={{ color: '#E3CAA5' }}>
-                <p>WhatsApp: 0812-xxxx-xxxx</p>
-                <p>Instagram: @safiyaveil</p>
-                <p>Email: hello@safiyaveil.com</p>
-              </div>
-            </div>
-
-            {/* Info */}
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#CEAB93' }}>
-                Informasi
-              </p>
-              <div className="space-y-1 text-sm" style={{ color: '#E3CAA5' }}>
-                <p>Pengiriman ke seluruh Indonesia</p>
-                <p>Jaminan produk original</p>
-                <p>Bahan premium & nyaman</p>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className="pt-6 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs"
-            style={{ borderTop: '1px solid #CEAB93', color: '#E3CAA5' }}
-          >
-            <p>© {new Date().getFullYear()} Safiya Veil. All rights reserved.</p>
-            <p style={{ fontStyle: 'italic' }}>Grace in Style, Pure in Faith</p>
-          </div>
-        </div>
-      </footer>
+      {/* Admin link tersembunyi */}
+      <a
+        href="/login"
+        className="fixed bottom-3 left-3 z-10 opacity-0 hover:opacity-25 transition-opacity select-none text-xs"
+        style={{ color: '#BF9270' }}
+        title="Admin"
+      >⚙</a>
     </div>
   )
+}
+
+const navStyle: React.CSSProperties = {
+  fontSize: '0.7rem',
+  letterSpacing: '0.2em',
+  textTransform: 'uppercase',
+  color: '#2C1810',
+  textDecoration: 'none',
+  fontWeight: 500,
 }
