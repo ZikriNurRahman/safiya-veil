@@ -49,3 +49,7 @@ repomix-output.txt
 repomix-output.json
 
 /supabase
+
+AGENTS.md
+CLAUDE.md
+DESIGN.md
