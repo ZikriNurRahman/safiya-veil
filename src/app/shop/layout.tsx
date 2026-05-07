@@ -3,7 +3,9 @@
 // • Announcement bar scrolling
 // • Header centered logo, nav kiri, aksi kanan
 // • Footer dinamis
+'use client'
 
+import { useState } from 'react'
 import { ShopFooter } from '@/components/shop/ShopFooter'
 import Link from 'next/link'
 
@@ -14,7 +16,14 @@ const ANNOUNCEMENTS = [
   '✦ Pesan via WhatsApp tersedia 24 jam',
 ]
 
+const NAV_LINKS = [
+  { label: 'Beranda', href: '/shop' },
+  { label: 'Koleksi', href: '/shop#koleksi' },
+  { label: 'Tentang', href: '/shop#tentang' },
+]
+
 export default function ShopLayout({ children }: { children: React.ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   return (
     <div className="min-h-screen flex flex-col" style={{ background: '#FFEDDB' }}>
 
@@ -53,18 +62,59 @@ export default function ShopLayout({ children }: { children: React.ReactNode }) 
         >
           {/* Nav kiri — desktop */}
           <nav className="hidden md:flex items-center gap-7">
-            {[
-              { label: 'Beranda', href: '/shop' },
-              { label: 'Koleksi', href: '/shop#koleksi' },
-              { label: 'Tentang', href: '/shop#tentang' },
-            ].map(l => (
+            {NAV_LINKS.map(l => (
               <Link key={l.label} href={l.href} style={navStyle}>{l.label}</Link>
             ))}
           </nav>
 
           {/* Mobile: burger */}
-          <div className="md:hidden" style={{ color: '#2C1810', fontSize: '1.3rem', cursor: 'pointer' }}>
+          {/* {isMobileMenuOpen} ? <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            style={{ fontSize: '2rem', color: '#2C1810', background: 'transparent', border: 'none', lineHeight: 1 }}
+          >
+            &times;
+          </button> : <button className="md:hidden" style={{ color: '#2C1810', fontSize: '1.3rem', cursor: 'pointer' }} onClick={() => setIsMobileMenuOpen(true)}>
             &#9776;
+          </button> */}
+          <button className="md:hidden" style={{ color: '#2C1810', fontSize: '1.3rem', cursor: 'pointer' }} onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {isMobileMenuOpen ? <>&times;</> : <>&#9776;</>}
+          </button>
+
+          {/* ─────────────── MOBILE MENU OVERLAY ─────────────── */}
+          <div
+            className={`md:hidden absolute top-full left-0 w-full overflow-hidden transition-all duration-300 ease-in-out shadow-sm`}
+            style={{
+              background: '#FFEDDB',
+              maxHeight: isMobileMenuOpen ? '300px' : '0px',
+              borderBottom: isMobileMenuOpen ? '1px solid #EDCDBB' : 'none'
+            }}
+          >
+            {/* Header Mobile Menu */}
+            {/* <div className="flex justify-between items-center px-5" style={{ height: 66, borderBottom: '1px solid #EDCDBB' }}>
+              <span style={{ fontFamily: 'var(--font-heading)', fontSize: '1.1rem', fontWeight: 600, color: '#2C1810', letterSpacing: '0.14em' }}>
+                MENU
+              </span>
+              <button
+                onClick={() => setIsMobileMenuOpen(false)}
+                style={{ fontSize: '2rem', color: '#2C1810', background: 'transparent', border: 'none', lineHeight: 1 }}
+              >
+                &times;
+              </button>
+            </div> */}
+
+            {/* Daftar Link Mobile */}
+            <nav className="flex flex-col px-5 py-10 gap-8">
+              {NAV_LINKS.map(l => (
+                <Link
+                  key={l.label}
+                  href={l.href}
+                  onClick={() => setIsMobileMenuOpen(false)} // Tutup menu saat diklik
+                  style={{ ...navStyle, fontSize: '0.9rem' }}
+                >
+                  {l.label}
+                </Link>
+              ))}
+            </nav>
           </div>
 
           {/* Logo — tengah absolut */}

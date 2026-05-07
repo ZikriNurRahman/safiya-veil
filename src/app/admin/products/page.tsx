@@ -238,11 +238,13 @@ export default function AdminProductsPage() {
     }
 
     const payload = {
-      name:         form.name.trim(),
-      price:        parseFloat(form.price),
-      category:     form.category || (categories[0]?.name ?? ''),
-      description:  form.description.trim(),
+      name: form.name.trim(),
+      price: parseFloat(form.price),
+      category: form.category || (categories[0]?.name ?? ''),
+      description: form.description.trim(),
       image_url: finalImageUrl,
+      is_available: form.is_available,
+      colors: form.colors,
       stock: form.color_stocks.length > 0
         ? form.color_stocks.reduce((s, c) => s + c.stock, 0)
         : parseInt(form.stock) || 0,
@@ -367,14 +369,6 @@ export default function AdminProductsPage() {
               className={inputCls} style={inputStyle}
             />
 
-            {/* Stok */}
-            <input
-              type="number" placeholder="Stok" min="0"
-              value={form.stock}
-              onChange={e => setForm(prev => ({ ...prev, stock: e.target.value }))}
-              className={inputCls} style={inputStyle}
-            />
-
             {/* Kategori */}
             <select
               value={form.category || (categories[0]?.name ?? '')}
@@ -477,8 +471,8 @@ export default function AdminProductsPage() {
               ) : (
                 <div>
                   <input
-                      placeholder="https://example.com/gambar.jpg"
-                      value={form.image_url}
+                    placeholder="https://example.com/gambar.jpg"
+                    value={form.image_url}
                     onChange={e => {
                       setForm(prev => ({ ...prev, image_url: e.target.value }))
                       setImagePreview(e.target.value || null)
@@ -714,15 +708,9 @@ export default function AdminProductsPage() {
                   {/* Stok */}
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
-                      <button onClick={() => updateStock(p, -1)}
-                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold"
-                        style={{ background: '#E3CAA5', color: '#3D2B1F' }}>−</button>
                       <span className="w-8 text-center text-sm font-semibold" style={{ color: '#3D2B1F' }}>
                         {p.stock}
                       </span>
-                      <button onClick={() => updateStock(p, 1)}
-                        className="w-6 h-6 rounded flex items-center justify-center text-sm font-bold"
-                        style={{ background: '#AD8B73', color: '#FFFBE9' }}>+</button>
                     </div>
                   </td>
 

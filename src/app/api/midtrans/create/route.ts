@@ -1,6 +1,6 @@
 // src/app/api/midtrans/create/route.ts
 // API endpoint untuk buat Midtrans transaction
-// Mendukung QRIS dan Bank Transfer (BCA, BNI, Mandiri, BRI)
+// Mendukung QRIS
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase-server'
@@ -35,10 +35,10 @@ export async function POST(request: NextRequest) {
                 price: i.price,
                 quantity: i.quantity,
             })),
-            // Batasi ke QRIS atau Bank Transfer saja
+            // Batasi ke QRIS
             enabled_payments: paymentMethod === 'QRIS'
-                ? ['gopay', 'qris']
-                : ['bca_va', 'bni_va', 'bri_va', 'mandiri_va', 'permata_va'],
+                ? ['other_qris']
+                : ['other_qris'],
             callbacks: {
                 finish: `${process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'}/shop/cart?status=success`,
             },

@@ -5,6 +5,7 @@ import { Cormorant_Garamond, Lato } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
 
+
 // Font heading — Cormorant Garamond: elegan, serif, cocok untuk brand hijab premium
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],

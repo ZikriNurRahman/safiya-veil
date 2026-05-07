@@ -1,10 +1,11 @@
 'use client'
 // src/app/admin/page.tsx
+// Dashboard ringkasan — realtime, filter range, export CSV, print struk
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { supabase } from '@/lib/supabase'
 import { formatRupiah, formatDateTime } from '@/lib/utils'
-import type { Order } from '@/types/database'
+import type { Order, OrderItem } from '@/types/database'
 
 interface Stats {
   totalOrders: number
@@ -21,8 +22,7 @@ function StatCard({ icon, label, value, sub }: { icon: string; label: string; va
       style={{ background: '#FFFBE9', border: '1px solid #E3CAA5' }}>
       <div className="text-2xl">{icon}</div>
       <div>
-        <p className="text-xl font-semibold"
-          style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>{value}</p>
+        <p className="text-xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>{value}</p>
         <p className="text-xs font-medium mt-0.5" style={{ color: '#8C6E5A' }}>{label}</p>
         {sub && <p className="text-xs mt-0.5" style={{ color: '#CEAB93' }}>{sub}</p>}
       </div>
@@ -30,91 +30,213 @@ function StatCard({ icon, label, value, sub }: { icon: string; label: string; va
   )
 }
 
-// Hitung tanggal mulai berdasarkan range
 function getDateRange(range: DateRange): { from: string; to: string; label: string } {
   const now = new Date()
   const today = now.toISOString().split('T')[0]
-
-  if (range === 'today') {
-    return { from: `${today}T00:00:00`, to: `${today}T23:59:59`, label: 'Hari Ini' }
-  }
-
+  if (range === 'today') return { from: `${today}T00:00:00`, to: `${today}T23:59:59`, label: 'Hari Ini' }
   const days = range === '7d' ? 7 : range === '30d' ? 30 : 90
   const from = new Date(now)
   from.setDate(from.getDate() - (days - 1))
-  const fromDate = from.toISOString().split('T')[0]
-
-  return {
-    from: `${fromDate}T00:00:00`,
-    to: `${today}T23:59:59`,
-    label: `${days} Hari`,
-  }
+  return { from: `${from.toISOString().split('T')[0]}T00:00:00`, to: `${today}T23:59:59`, label: `${days} Hari` }
 }
 
-// Export orders ke CSV
 function exportCSV(orders: Order[], label: string) {
-  const header = [
-    'No Order', 'Customer', 'Phone', 'Type', 'Payment',
-    'Total', 'Status', 'Tanggal',
-  ].join(',')
-
+  const header = ['No Order', 'Customer', 'Phone', 'Type', 'Payment', 'Total', 'Status', 'Tanggal'].join(',')
   const rows = orders.map(o => [
-    o.order_number,
-    `"${o.customer_name}"`,
-    o.customer_phone,
-    o.order_type,
-    o.payment_method,
-    o.total_price,
-    o.status,
-    formatDateTime(o.created_at),
+    o.order_number, `"${o.customer_name}"`, o.customer_phone,
+    o.order_type, o.payment_method, o.total_price, o.status, formatDateTime(o.created_at),
   ].join(','))
-
-  const csv = [header, ...rows].join('\n')
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
+  const blob = new Blob([[header, ...rows].join('\n')], { type: 'text/csv;charset=utf-8;' })
   const a = document.createElement('a')
-  a.href = url
+  a.href = URL.createObjectURL(blob)
   a.download = `safiya-veil-orders-${label.replace(/\s/g, '-')}-${new Date().toISOString().split('T')[0]}.csv`
   a.click()
-  URL.revokeObjectURL(url)
 }
 
+// ── Komponen Print Struk ──────────────────────────────────────────────────────
+function PrintReceipt({ order }: { order: Order & { order_items?: OrderItem[] } }) {
+  const printRef = useRef<HTMLDivElement>(null)
+
+  const handlePrint = () => {
+    if (!printRef.current) return
+
+    const printWindow = window.open('', '_blank', 'width=400,height=600')
+    if (!printWindow) return
+
+    const content = printRef.current.innerHTML
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Struk — ${order.order_number}</title>
+          <style>
+            * { margin: 0; padding: 0; box-sizing: border-box; }
+            body {
+              font-family: 'Courier New', monospace;
+              font-size: 12px;
+              color: #000;
+              padding: 16px;
+              max-width: 300px;
+              margin: 0 auto;
+            }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 8px 0; }
+            .row { display: flex; justify-content: space-between; margin: 3px 0; }
+            .brand { font-size: 18px; font-weight: bold; letter-spacing: 2px; }
+            .tagline { font-size: 9px; letter-spacing: 1px; margin-bottom: 4px; }
+            .item-name { flex: 1; padding-right: 8px; }
+            .total-row { font-size: 14px; font-weight: bold; }
+          </style>
+        </head>
+        <body>${content}</body>
+      </html>
+    `)
+    printWindow.document.close()
+    printWindow.focus()
+    setTimeout(() => {
+      printWindow.print()
+      printWindow.close()
+    }, 300)
+  }
+
+  const payLabel = { TRANSFER: 'Bank Transfer', QRIS: 'QRIS' }[order.payment_method] ?? order.payment_method
+  const typeLabel = order.order_type === 'PICKUP' ? 'Ambil di Toko' : 'Pengiriman'
+
+  return (
+    <>
+      {/* Tombol print */}
+      <button
+        onClick={handlePrint}
+        className="px-3 py-1 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all hover:opacity-80"
+        style={{ background: '#E3CAA5', color: '#3D2B1F' }}
+        title="Print struk"
+      >
+        🖨 Struk
+      </button>
+
+      {/* Konten struk — tersembunyi, hanya untuk print */}
+      <div ref={printRef} style={{ display: 'none' }}>
+        <div className="center">
+          <div className="brand">SAFIYA VEIL</div>
+          <div className="tagline">Grace in Style, Pure in Faith</div>
+        </div>
+
+        <div className="divider" />
+
+        <div className="row"><span>No. Order</span><span className="bold">{order.order_number}</span></div>
+        <div className="row"><span>Tanggal</span><span>{formatDateTime(order.created_at)}</span></div>
+        <div className="row"><span>Pelanggan</span><span>{order.customer_name}</span></div>
+        <div className="row"><span>WhatsApp</span><span>{order.customer_phone}</span></div>
+        <div className="row"><span>Tipe</span><span>{typeLabel}</span></div>
+        {order.customer_address && (
+          <div className="row"><span>Alamat</span><span style={{ maxWidth: 150, textAlign: 'right' }}>{order.customer_address}</span></div>
+        )}
+        <div className="row"><span>Pembayaran</span><span>{payLabel}</span></div>
+
+        <div className="divider" />
+
+        {/* Item list */}
+        {order.order_items && order.order_items.length > 0 ? (
+          <>
+            {order.order_items.map(item => (
+              <div key={item.id} style={{ marginBottom: 6 }}>
+                <div className="bold item-name">
+                  {item.product_name}
+                  {item.notes ? ` (${item.notes})` : ''}
+                </div>
+                <div className="row">
+                  <span>{item.quantity} × {formatRupiah(item.unit_price)}</span>
+                  <span>{formatRupiah(item.unit_price * item.quantity)}</span>
+                </div>
+              </div>
+            ))}
+          </>
+        ) : (
+          <p style={{ textAlign: 'center', color: '#666', fontSize: 10 }}>— detail item tidak tersedia —</p>
+        )}
+
+        <div className="divider" />
+
+        <div className="row total-row">
+          <span>TOTAL</span>
+          <span>{formatRupiah(order.total_price)}</span>
+        </div>
+
+        <div className="divider" />
+
+        <div className="center" style={{ marginTop: 8, fontSize: 10 }}>
+          Terima kasih telah berbelanja di Safiya Veil ✨
+        </div>
+      </div>
+    </>
+  )
+}
+
+// ── Main Dashboard ────────────────────────────────────────────────────────────
 export default function AdminDashboardPage() {
-  const [stats,        setStats]        = useState<Stats | null>(null)
-  const [recentOrders, setRecentOrders] = useState<Order[]>([])
-  const [allOrders, setAllOrders] = useState<Order[]>([])  // untuk CSV
-  const [loading,      setLoading]      = useState(true)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [recentOrders, setRecentOrders] = useState<(Order & { order_items?: OrderItem[] })[]>([])
+  const [allOrders, setAllOrders] = useState<Order[]>([])
+  const [loading, setLoading] = useState(true)
   const [dateRange, setDateRange] = useState<DateRange>('today')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [realtimePing, setRealtimePing] = useState(false) // animasi indikator realtime
 
   const fetchData = useCallback(async () => {
-    setLoading(true)
     const { from, to } = getDateRange(dateRange)
 
     const [ordersRes, productsRes, recentRes] = await Promise.all([
       supabase.from('orders')
-        .select('*, order_items(*)')
+        .select('*')
         .gte('created_at', from)
         .lte('created_at', to),
       supabase.from('products').select('id', { count: 'exact' }).eq('is_available', true),
-      supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5),
+      // Recent orders dengan items untuk struk
+      supabase.from('orders')
+        .select('*, order_items(*)')
+        .order('created_at', { ascending: false })
+        .limit(10),
     ])
 
     const orders = ordersRes.data || []
     setAllOrders(orders as Order[])
     setStats({
       totalOrders: orders.length,
-      revenue: orders.filter(o => o.status === 'COMPLETED')
-        .reduce((s, o) => s + Number(o.total_price), 0),
+      revenue: orders.filter(o => o.status === 'COMPLETED').reduce((s, o) => s + Number(o.total_price), 0),
       pendingOrders: orders.filter(o => o.status === 'PENDING').length,
       totalProducts: productsRes.count ?? 0,
     })
 
-    if (recentRes.data) setRecentOrders(recentRes.data as Order[])
+    if (recentRes.data) setRecentOrders(recentRes.data as (Order & { order_items?: OrderItem[] })[])
     setLoading(false)
   }, [dateRange])
 
-  useEffect(() => { fetchData() }, [fetchData])
+  useEffect(() => {
+    setLoading(true)
+    fetchData()
+  }, [fetchData])
+
+  // ── Realtime subscription ───────────────────────────────────────────────────
+  useEffect(() => {
+    const channel = supabase
+      .channel('dashboard-realtime')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+      }, () => {
+        // Animasi ping indikator
+        setRealtimePing(true)
+        setTimeout(() => setRealtimePing(false), 1000)
+        // Refresh data
+        fetchData()
+      })
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [fetchData])
 
   const statusBadge = (status: Order['status']) => {
     const map: Record<Order['status'], [string, string, string]> = {
@@ -139,29 +261,39 @@ export default function AdminDashboardPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold"
-          style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
-          Dashboard
-        </h1>
-        <p className="text-sm mt-1" style={{ color: '#8C6E5A' }}>
-          Ringkasan performa toko Safiya Veil
-        </p>
+      {/* Header + realtime indicator */}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
+            Dashboard
+          </h1>
+          <p className="text-sm mt-1" style={{ color: '#8C6E5A' }}>Ringkasan performa toko Safiya Veil</p>
+        </div>
+        {/* Indikator realtime */}
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+          style={{ background: '#E3CAA5', fontSize: '0.65rem', color: '#8C6E5A' }}>
+          <div
+            className="w-2 h-2 rounded-full transition-all"
+            style={{
+              background: realtimePing ? '#2E7D32' : '#AD8B73',
+              boxShadow: realtimePing ? '0 0 6px #2E7D32' : 'none',
+              transform: realtimePing ? 'scale(1.4)' : 'scale(1)',
+            }}
+          />
+          <span>Realtime</span>
+        </div>
       </div>
 
       {/* Filter range + Export */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex gap-2">
           {rangeOptions.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setDateRange(key)}
+            <button key={key} onClick={() => setDateRange(key)}
               className="px-3 py-1.5 rounded-xl text-xs font-semibold transition-all"
               style={{
                 background: dateRange === key ? '#AD8B73' : '#E3CAA5',
                 color: dateRange === key ? '#FFFBE9' : '#8C6E5A',
-              }}
-            >
+              }}>
               {label}
             </button>
           ))}
@@ -170,14 +302,13 @@ export default function AdminDashboardPage() {
         <button
           onClick={() => exportCSV(allOrders, rangeOptions.find(r => r.key === dateRange)!.label)}
           disabled={allOrders.length === 0}
-          className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-semibold transition-all"
+          className="flex items-center gap-2 px-4 py-1.5 rounded-xl text-xs font-semibold"
           style={{
             background: allOrders.length === 0 ? '#E3CAA5' : '#3D2B1F',
             color: allOrders.length === 0 ? '#8C6E5A' : '#FFFBE9',
             cursor: allOrders.length === 0 ? 'not-allowed' : 'pointer',
-          }}
-        >
-          ⬇ Export CSV ({allOrders.length} order)
+          }}>
+          ⬇ Export CSV ({allOrders.length})
         </button>
       </div>
 
@@ -190,14 +321,14 @@ export default function AdminDashboardPage() {
         </div>
       ) : stats ? (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <StatCard icon="📦" label="Total Order" value={`${stats.totalOrders}`} sub={rangeOptions.find(r => r.key === dateRange)?.label} />
-            <StatCard icon="💰" label="Pendapatan" value={formatRupiah(stats.revenue)} sub="order selesai" />
-            <StatCard icon="⏳" label="Menunggu" value={`${stats.pendingOrders}`} sub="perlu ditangani" />
-            <StatCard icon="🧕" label="Produk Aktif" value={`${stats.totalProducts}`} sub="tersedia" />
+          <StatCard icon="📦" label="Total Order" value={`${stats.totalOrders}`} sub={rangeOptions.find(r => r.key === dateRange)?.label} />
+          <StatCard icon="💰" label="Pendapatan" value={formatRupiah(stats.revenue)} sub="order selesai" />
+          <StatCard icon="⏳" label="Menunggu" value={`${stats.pendingOrders}`} sub="perlu ditangani" />
+          <StatCard icon="🧕" label="Produk Aktif" value={`${stats.totalProducts}`} sub="tersedia" />
         </div>
       ) : null}
 
-      {/* Order terbaru — bisa diklik untuk lihat detail */}
+      {/* Order terbaru + print struk */}
       <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid #E3CAA5' }}>
         <div className="px-5 py-4 flex justify-between items-center"
           style={{ borderBottom: '1px solid #E3CAA5' }}>
@@ -232,12 +363,18 @@ export default function AdminDashboardPage() {
                       {order.customer_name} · {formatDateTime(order.created_at)}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap justify-end">
                     <span className="text-sm font-semibold"
                       style={{ fontFamily: 'var(--font-heading)', color: '#AD8B73' }}>
                       {formatRupiah(order.total_price)}
                     </span>
                     {statusBadge(order.status)}
+
+                    {/* ← PRINT STRUK BUTTON */}
+                    <div onClick={e => e.stopPropagation()}>
+                      <PrintReceipt order={order} />
+                    </div>
+
                     <span className="text-xs" style={{ color: '#CEAB93' }}>
                       {expandedId === order.id ? '▲' : '▼'}
                     </span>
@@ -259,9 +396,12 @@ export default function AdminDashboardPage() {
                     {order.order_items && order.order_items.length > 0 && (
                       <div className="space-y-1">
                         {order.order_items.map(item => (
-                          <div key={item.id} className="flex justify-between text-xs"
-                            style={{ color: '#3D2B1F' }}>
-                            <span>{item.product_name} {item.notes ? `(${item.notes})` : ''} ×{item.quantity}</span>
+                          <div key={item.id} className="flex justify-between text-xs" style={{ color: '#3D2B1F' }}>
+                            <span>
+                              {item.product_name}
+                              {item.notes ? ` (${item.notes})` : ''}
+                              {' '}×{item.quantity}
+                            </span>
                             <span style={{ color: '#AD8B73' }}>{formatRupiah(item.unit_price * item.quantity)}</span>
                           </div>
                         ))}
