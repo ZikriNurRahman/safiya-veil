@@ -27,7 +27,7 @@ export function Testimony() {
                     {[
                         { name: 'Fajrin A.', city: 'Cirebon', text: 'Bagus bangeettt suka sama bahannya adem terus ringann, warnanya juga cantikk, next pasti beli lagi di siniiii', rating: 5 },
                         { name: 'Rika Aprilia', city: 'Bandung', text: 'Baguss banget bahannya lembut, gampang banget diaturnya suka makasihh', rating: 5 },
-                        { name: 'Zahra K.', city: 'Bandung', text: "Hijabnya syar'i tapi tetep stylish! Banyak dapat compliment dari temen-temen. Sangat recommended!", rating: 5 },
+                        { name: 'Astrit', city: 'Bandung', text: "Bagus bangett, malahan lebih bagus dari yang biasa aku beli dari merek lain, yang ini lebih tebal, berat dan ga nemplok banget", rating: 5 },
                     ].map((t, i) => (
                         <div
                             key={i}

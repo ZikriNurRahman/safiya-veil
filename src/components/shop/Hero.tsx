@@ -113,7 +113,7 @@ export function Hero() {
                 </div>
 
                 {/* Stats row — analog Starbucks hero stat section */}
-                <div
+                {/* <div
                     className="hidden md:flex items-center gap-12 mt-14 pt-8"
                     style={{ borderTop: '1px solid rgba(191,146,112,0.12)' }}
                 >
@@ -140,7 +140,7 @@ export function Hero() {
                             </p>
                         </div>
                     ))}
-                </div>
+                </div> */}
             </div>
 
             {/* Fade ke background warna brand */}

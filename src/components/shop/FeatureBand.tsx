@@ -8,7 +8,6 @@ export function FeatureBand() {
                 {[
                     { icon: '◈', title: 'Bahan Premium', desc: 'Nyaman sepanjang hari' },
                     { icon: '✦', title: 'Desain Elegan', desc: "Syar'i & stylish" },
-                    { icon: '❋', title: 'Gratis Ongkir', desc: 'Min. pembelian tertentu' },
                     { icon: '◉', title: 'Produk Original', desc: 'Keaslian terjamin' },
                 ].map((f, i) => (
                     <div
