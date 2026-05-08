@@ -19,7 +19,6 @@ export default function AdminProductsPage() {
   const [filterCat, setFilterCat] = useState('Semua')
   const [realtimePing, setRealtimePing] = useState(false)
 
-  // ── Fetch data (pakai useCallback agar bisa dipanggil dari realtime) ──
   const fetchAll = useCallback(async () => {
     const [{ data: p }, { data: c }] = await Promise.all([
       supabase.from('products').select('*').order('category').order('name'),
@@ -31,7 +30,6 @@ export default function AdminProductsPage() {
 
   useEffect(() => { fetchAll() }, [fetchAll])
 
-  // ── Realtime subscription ──────────────────────────────────────────────
   useEffect(() => {
     const channel = supabase
       .channel('admin-products-realtime')
@@ -44,7 +42,6 @@ export default function AdminProductsPage() {
     return () => { supabase.removeChannel(channel) }
   }, [fetchAll])
 
-  // ── Actions ──
   const toggleAvail = async (p: Product) => {
     await supabase.from('products').update({ is_available: !p.is_available }).eq('id', p.id)
     toast.success(`${p.name} → ${!p.is_available ? 'Tersedia' : 'Tidak tersedia'}`)
@@ -59,10 +56,16 @@ export default function AdminProductsPage() {
   const startEdit = (p: Product) => {
     setEditId(p.id)
     setFormInitialData({
-      name: p.name, price: String(p.price), category: p.category,
-      description: p.description ?? '', image_url: p.image_url ?? '',
-      stock: String(p.stock), is_available: p.is_available,
-      colors: p.colors ?? [], color_stocks: (p.color_stocks ?? []),
+      name: p.name,
+      base_sku: p.base_sku ?? '', // ← Update: Masukkan Base SKU saat edit
+      price: String(p.price),
+      category: p.category,
+      description: p.description ?? '',
+      image_url: p.image_url ?? '',
+      stock: String(p.stock),
+      is_available: p.is_available,
+      colors: p.colors ?? [],
+      color_stocks: (p.color_stocks ?? []), // ← Ini sudah memuat code warna bawaan Supabase
       color_images: (p.color_images ?? []).map(ci => ({ color: ci.color, image_url: ci.image_url })),
     })
     setShowForm(true)
@@ -76,7 +79,6 @@ export default function AdminProductsPage() {
 
   return (
     <div>
-      {/* Header + indikator realtime */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
@@ -88,11 +90,7 @@ export default function AdminProductsPage() {
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full"
             style={{ background: '#E3CAA5', fontSize: '0.65rem', color: '#8C6E5A' }}>
             <div className="w-2 h-2 rounded-full transition-all"
-              style={{
-                background: realtimePing ? '#2E7D32' : '#AD8B73',
-                boxShadow: realtimePing ? '0 0 6px #2E7D32' : 'none',
-                transform: realtimePing ? 'scale(1.4)' : 'scale(1)',
-              }}
+              style={{ background: realtimePing ? '#2E7D32' : '#AD8B73', boxShadow: realtimePing ? '0 0 6px #2E7D32' : 'none', transform: realtimePing ? 'scale(1.4)' : 'scale(1)' }}
             />
             <span>Realtime</span>
           </div>
@@ -106,18 +104,10 @@ export default function AdminProductsPage() {
         </div>
       </div>
 
-      {/* ── Form tambah/edit ── */}
       {showForm && (
-        <ProductForm
-          editId={editId}
-          initialData={formInitialData}
-          categories={categories}
-          products={products}
-          onClose={handleCloseForm}
-        />
+        <ProductForm editId={editId} initialData={formInitialData} categories={categories} products={products} onClose={handleCloseForm} />
       )}
 
-      {/* ── Filter kategori ── */}
       <div className="flex gap-2 flex-wrap mb-4">
         {['Semua', ...categories.map(c => c.name)].map(cat => (
           <button key={cat} onClick={() => setFilterCat(cat)}
@@ -128,14 +118,7 @@ export default function AdminProductsPage() {
         ))}
       </div>
 
-      {/* ── Tabel produk ── */}
-      <ProductTable
-        products={products}
-        filterCat={filterCat}
-        onEdit={startEdit}
-        onDelete={deleteProduct}
-        onToggleAvail={toggleAvail}
-      />
+      <ProductTable products={products} filterCat={filterCat} onEdit={startEdit} onDelete={deleteProduct} onToggleAvail={toggleAvail} />
     </div>
   )
 }

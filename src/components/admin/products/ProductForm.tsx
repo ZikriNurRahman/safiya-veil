@@ -4,12 +4,29 @@ import { useState, useRef, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import type { Category, Product } from '@/types/database'
-import { COLOR_HEX, PRESET_COLORS } from '@/lib/constant'
+
+// ── CONSTANTS & TYPES ──
+const PRESET_COLORS = [
+    'Hitam', 'Putih', 'Abu-abu', 'Navy', 'Cokelat', 'Krem',
+    'Dusty Pink', 'Dusty Blue', 'Dusty Rose', 'Maroon',
+    'Merah', 'Ungu', 'Hijau', 'Tosca', 'Sage',
+    'Lavender', 'Mustard', 'Peach', 'Oranye', 'Biru',
+]
+
+const COLOR_HEX: Record<string, string> = {
+    'Hitam': '#1C1C1C', 'Putih': '#F5F5F5', 'Abu-abu': '#9CA3AF',
+    'Navy': '#1E3A5F', 'Cokelat': '#795548', 'Krem': '#F5E6C8',
+    'Dusty Pink': '#D4A5A5', 'Dusty Blue': '#7BA7BC', 'Dusty Rose': '#C9848E',
+    'Merah': '#C0392B', 'Ungu': '#7B2D8B', 'Hijau': '#2E7D32',
+    'Tosca': '#00897B', 'Maroon': '#800000', 'Sage': '#87AE73',
+    'Lavender': '#B39DDB', 'Mustard': '#D4A017', 'Peach': '#FFAB91',
+    'Oranye': '#E65100', 'Biru': '#1565C0',
+}
 
 export interface FormState {
     name: string; base_sku: string; price: string; category: string; description: string;
     image_url: string; stock: string; is_available: boolean; colors: string[];
-    color_stocks: { color: string; stock: number }[];
+    color_stocks: { color: string; stock: number; code?: string }[];
     color_images: { color: string; image_url: string; file?: File; preview?: string }[];
 }
 
@@ -130,6 +147,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
 
         const payload = {
             name: form.name.trim(),
+            base_sku: form.base_sku.trim() || null,
             price: parseFloat(form.price),
             category: form.category || (categories[0]?.name ?? ''),
             description: form.description.trim(),
@@ -156,7 +174,8 @@ export function ProductForm({ editId, initialData, categories, products, onClose
     }
 
     const syncColorArrays = (newColors: string[], currentColorStocks: FormState['color_stocks'], currentColorImages: FormState['color_images']) => {
-        const newStocks = newColors.map(c => currentColorStocks.find(cs => cs.color === c) ?? { color: c, stock: 0 })
+        // Otomatis generate 3 huruf awal warna (uppercase) jika belum ada code
+        const newStocks = newColors.map(c => currentColorStocks.find(cs => cs.color === c) ?? { color: c, stock: 0, code: c.substring(0, 3).toUpperCase() })
         const newImages = newColors.map(c => currentColorImages.find(ci => ci.color === c) ?? { color: c, image_url: '' })
         return { newStocks, newImages }
     }
@@ -172,6 +191,36 @@ export function ProductForm({ editId, initialData, categories, products, onClose
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <input placeholder="Nama produk *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={`${inputCls} md:col-span-2`} style={inputStyle} />
+
+                {/* ── BASE SKU & AUTO GENERATOR ── */}
+                <div className="md:col-span-2 flex items-end gap-2">
+                    <div className="flex-1">
+                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: '#8C6E5A' }}>Base SKU Produk</label>
+                        <input
+                            placeholder="Contoh: HJB-PSM"
+                            value={form.base_sku}
+                            onChange={e => setForm({ ...form, base_sku: e.target.value.toUpperCase().replace(/\s/g, '-') })}
+                            className={inputCls} style={inputStyle}
+                        />
+                    </div>
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault()
+                            const cat = form.category || (categories[0]?.name ?? '')
+                            const catCode = cat.substring(0, 3).toUpperCase()
+                            const nameWords = form.name.split(' ').filter(Boolean)
+                            let nameCode = ''
+                            if (nameWords.length >= 2) nameCode = (nameWords[0].substring(0, 2) + nameWords[1][0]).toUpperCase()
+                            else if (nameWords.length === 1) nameCode = nameWords[0].substring(0, 3).toUpperCase()
+                            if (catCode && nameCode) setForm({ ...form, base_sku: `${catCode}-${nameCode}` })
+                        }}
+                        className="px-4 py-2.5 rounded-xl text-xs font-semibold shrink-0 transition-all hover:opacity-90"
+                        style={{ background: '#E3CAA5', color: '#3D2B1F', height: '42px' }}
+                    >
+                        ✨ Generate
+                    </button>
+                </div>
+
                 <input type="number" placeholder="Harga (Rp) *" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className={inputCls} style={inputStyle} />
                 <select value={form.category || (categories[0]?.name ?? '')} onChange={e => setForm({ ...form, category: e.target.value })} className={inputCls} style={inputStyle}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
@@ -228,17 +277,31 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                     {form.colors.length > 0 && (
                         <div className="md:col-span-2 mt-3 space-y-2">
                             {form.colors.map(color => {
-                                const cs = form.color_stocks.find(c => c.color === color) ?? { color, stock: 0 }
+                                const cs = form.color_stocks.find(c => c.color === color) ?? { color, stock: 0, code: '' }
                                 const ci = form.color_images.find(c => c.color === color) ?? { color, image_url: '', preview: '' }
                                 return (
                                     <div key={color} className="flex flex-wrap items-center gap-2 p-3 rounded-xl" style={{ background: '#FAF5E8', border: '1px solid #E3CAA5' }}>
                                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: COLOR_HEX[color] ?? '#AD8B73', border: color === 'Putih' ? '1px solid #CEAB93' : undefined }} />
-                                        <span className="text-xs font-medium min-w-[80px]" style={{ color: '#3D2B1F' }}>{color}</span>
+                                        <span className="text-xs font-medium min-w-[70px]" style={{ color: '#3D2B1F' }}>{color}</span>
+
+                                        {/* ── KODE WARNA (SKU) ── */}
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-xs" style={{ color: '#8C6E5A' }}>Kode:</span>
+                                            <input
+                                                maxLength={3}
+                                                placeholder="XXX"
+                                                value={cs.code || ''}
+                                                onChange={e => setForm({ ...form, color_stocks: form.color_stocks.map(c => c.color === color ? { ...c, code: e.target.value.toUpperCase() } : c) })}
+                                                className="w-12 px-1 py-1 rounded-lg text-xs text-center outline-none uppercase font-bold"
+                                                style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9', color: '#AD8B73' }}
+                                            />
+                                        </div>
+
                                         <div className="flex items-center gap-1">
                                             <span className="text-xs" style={{ color: '#8C6E5A' }}>Stok:</span>
                                             <input type="number" min="0" value={cs.stock} onChange={e => setForm({ ...form, color_stocks: form.color_stocks.map(c => c.color === color ? { ...c, stock: parseInt(e.target.value) || 0 } : c) })} className="w-16 px-2 py-1 rounded-lg text-xs outline-none" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }} />
                                         </div>
-                                        <div className="flex items-center gap-1 flex-1 min-w-[160px]">
+                                        <div className="flex items-center gap-1 flex-1 min-w-[120px]">
                                             <span className="text-xs" style={{ color: '#8C6E5A' }}>URL:</span>
                                             <input placeholder="URL gambar" value={ci.image_url} onChange={e => setForm({ ...form, color_images: form.color_images.map(c => c.color === color ? { ...c, image_url: e.target.value } : c) })} className="flex-1 px-2 py-1 rounded-lg text-xs outline-none" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }} />
                                         </div>

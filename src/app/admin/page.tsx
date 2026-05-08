@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
 
     const [ordersRes, productsRes] = await Promise.all([
       supabase.from('orders')
-        .select('*, order_items(*)')
+        .select('*, order_items(*, products(base_sku, color_stocks))')
         .gte('created_at', from)
         .lte('created_at', to)
         .order('created_at', { ascending: false }),

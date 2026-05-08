@@ -102,9 +102,9 @@ export function CartSummary({
                     />
                 )}
 
-                {/* Payment method — HANYA QRIS dan TRANSFER */}
+                {/* Payment method — HANYA QRIS */}
                 <div className="grid grid-cols-2 gap-2">
-                    {(['QRIS', 'TRANSFER'] as PaymentMethod[]).map(m => (
+                    {(['QRIS'] as PaymentMethod[]).map(m => (
                         <button key={m} onClick={() => setPaymentMethod(m)}
                             className="py-2.5 rounded-xl text-xs font-semibold"
                             style={{

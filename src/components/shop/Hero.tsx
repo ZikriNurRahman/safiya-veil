@@ -1,13 +1,14 @@
+// src/components/shop/Hero.tsx
+
 export function Hero() {
     return (
         <section
+            // 🔥 PERBAIKAN: Gunakan class Tailwind untuk tinggi & posisi yang responsif
+            // Mobile: tinggi 70vh & posisi di tengah (items-center)
+            // Desktop (md): tinggi 90vh & posisi di bawah (items-end)
+            className="relative flex items-center md:items-end overflow-hidden min-h-[70vh] md:min-h-[90vh]"
             style={{
-                position: 'relative',
-                minHeight: '90vh',
                 background: 'linear-gradient(155deg, #1A0E08 0%, var(--brand-dark) 40%, #5C3020 70%, var(--brand-accent) 100%)',
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'flex-end',
             }}
         >
             {/* Dot texture — subtle noise */}
@@ -47,12 +48,7 @@ export function Hero() {
             }} />
 
             {/* Content */}
-            <div style={{
-                position: 'relative', zIndex: 10,
-                maxWidth: '80rem', margin: '0 auto',
-                padding: 'clamp(5rem, 12vw, 8rem) 1.5rem 4rem',
-                width: '100%',
-            }}>
+            <div className="relative z-10 w-full max-w-[80rem] mx-auto px-6 pb-12 pt-16 md:pb-16 md:pt-32">
                 <div style={{ maxWidth: 520 }}>
 
                     {/* Eyebrow — analog SoDoSans uppercase tracking */}
