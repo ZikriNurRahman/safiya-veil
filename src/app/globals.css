@@ -1,5 +1,5 @@
 /* src/app/globals.css */
-/* Safiya Veil — updated brand color system */
+/* Safiya Veil — Starbucks-inspired Design Token System */
 @import "tailwindcss";
 
 @theme inline {
@@ -10,48 +10,117 @@
 }
 
 :root {
+    /* ── Canvas ─────────────────────────────────────── */
     --background: #FFEDDB;
     --foreground: #2C1810;
 
-    /* Safiya Veil brand palette — NEW */
+    /* ── Brand Tier System (4 peran spesifik, analog 4-green Starbucks) ── */
     --brand-primary: #FFEDDB;
-    /* warm peach — latar utama */
+    /* Warm Peach — page canvas */
     --brand-secondary: #EDCDBB;
-    /* soft beige — sekunder */
+    /* Soft Beige — input border, divider */
     --brand-tertiary: #E3B7A0;
-    /* soft terracotta — tersier */
+    /* Terracotta — momen spesial / badge */
     --brand-accent: #BF9270;
-    /* rich taupe — aksen utama */
+    /* Rich Taupe — CTA filled, link, harga */
     --brand-dark: #2C1810;
-    /* deep brown — teks & hero */
+    /* Deep Brown — feature band, footer, dark CTA */
     --brand-muted: #8B6652;
-    /* medium brown — teks sekunder */
+    /* Medium Brown — body text sekunder */
     --brand-white: #FFFAF5;
-    /* off-white — kartu */
+    /* Off-white — card surface */
+
+    /* ── Text ───────────────────────────────────────── */
+    --text-dark: rgba(44, 24, 16, 0.87);
+    --text-dark-soft: rgba(44, 24, 16, 0.58);
+    --text-light: rgba(255, 250, 245, 1);
+    --text-light-soft: rgba(237, 205, 187, 0.70);
+
+    /* ── Layered Shadows (whisper-soft, 2-3 layer) ─── */
+    --shadow-card: 0 0 0.5px rgba(44, 24, 16, 0.14), 0 1px 1px rgba(44, 24, 16, 0.24);
+    --shadow-card-hover: 0 4px 16px rgba(44, 24, 16, 0.10), 0 1px 4px rgba(44, 24, 16, 0.12);
+    --shadow-nav: 0 1px 3px rgba(44, 24, 16, 0.10), 0 2px 2px rgba(44, 24, 16, 0.06), 0 0 2px rgba(44, 24, 16, 0.07);
+    --shadow-frap: 0 0 6px rgba(44, 24, 16, 0.24), 0 8px 12px rgba(44, 24, 16, 0.18);
+    --shadow-frap-active: 0 0 6px rgba(44, 24, 16, 0.24), 0 8px 12px rgba(44, 24, 16, 0);
+
+    /* ── Button ─────────────────────────────────────── */
+    --btn-radius: 50px;
+    /* Full-pill universal */
+    --btn-transition: all 0.2s ease;
+
+    /* ── Card ───────────────────────────────────────── */
+    --card-radius: 12px;
+
+    /* ── Typography ─────────────────────────────────── */
+    --tracking-tight: -0.01em;
+    /* Universal body tracking */
+    --tracking-caps: 0.20em;
+    /* Uppercase labels */
+    --tracking-wide: 0.32em;
+    /* Tagline / eyebrow */
+
+    /* ── Spacing ────────────────────────────────────── */
+    --space-1: 0.25rem;
+    /* 4px  */
+    --space-2: 0.5rem;
+    /* 8px  */
+    --space-3: 1rem;
+    /* 16px — default gutter */
+    --space-4: 1.5rem;
+    /* 24px — card padding */
+    --space-5: 2rem;
+    /* 32px */
+    --space-6: 2.5rem;
+    /* 40px */
+    --space-7: 3rem;
+    /* 48px */
+    --space-8: 3.5rem;
+    /* 56px — Frap size */
+    --space-9: 4rem;
+    /* 64px */
+
+    /* ── Frap (floating circular cart) ─────────────── */
+    --frap-size: 56px;
+    --frap-touch-offset: calc(-1 * 0.5rem);
+
+    /* ── Animation ──────────────────────────────────── */
+    --duration-fast: 0.2s;
+    --duration-base: 0.3s;
+    --duration-slow: 0.55s;
+    --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-spring: cubic-bezier(0.32, 2.32, 0.61, 0.27);
+    --ease-expander: cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
+/* ════════════════════════════════════
+   BASE
+════════════════════════════════════ */
 @layer base {
-    * {
+
+    *,
+    *::before,
+    *::after {
         box-sizing: border-box;
         margin: 0;
         padding: 0;
-    }
-
-    body {
-        background-color: var(--background);
-        color: var(--foreground);
-        font-family: var(--font-sans), 'Georgia', serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
     }
 
     html {
         scroll-behavior: smooth;
     }
 
+    body {
+        background-color: var(--background);
+        color: var(--text-dark);
+        font-family: var(--font-sans), 'Helvetica Neue', Helvetica, sans-serif;
+        letter-spacing: var(--tracking-tight);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
     ::-webkit-scrollbar {
-        width: 5px;
-        height: 5px;
+        width: 4px;
+        height: 4px;
     }
 
     ::-webkit-scrollbar-track {
@@ -68,7 +137,197 @@
     }
 }
 
-/* ── Announcement bar marquee ──────────────────────────────── */
+/* ════════════════════════════════════
+   BUTTONS — full-pill + scale(0.95)
+   Semua CTA wajib pakai salah satu class ini
+════════════════════════════════════ */
+
+/* Primary filled — CTA utama, analog Green Accent Starbucks */
+.btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 2rem;
+    background: var(--brand-accent);
+    color: var(--brand-white);
+    border: 1px solid var(--brand-accent);
+    border-radius: var(--btn-radius);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--btn-transition);
+}
+
+.btn-primary:hover {
+    opacity: 0.88;
+}
+
+.btn-primary:active {
+    transform: scale(0.95);
+}
+
+/* Outlined — sekunder on light */
+.btn-outline {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 2rem;
+    background: transparent;
+    color: var(--brand-accent);
+    border: 1.5px solid var(--brand-accent);
+    border-radius: var(--btn-radius);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--btn-transition);
+}
+
+.btn-outline:active {
+    transform: scale(0.95);
+}
+
+/* Dark filled — primary on light background */
+.btn-dark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 2rem;
+    background: var(--brand-dark);
+    color: var(--brand-white);
+    border: 1px solid var(--brand-dark);
+    border-radius: var(--btn-radius);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--btn-transition);
+}
+
+.btn-dark:active {
+    transform: scale(0.95);
+}
+
+/* White filled — primary on dark feature band (analog Green-on-Green Inverted) */
+.btn-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.7rem 2rem;
+    background: var(--brand-white);
+    color: var(--brand-dark);
+    border: 1px solid var(--brand-white);
+    border-radius: var(--btn-radius);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--btn-transition);
+}
+
+.btn-light:active {
+    transform: scale(0.95);
+}
+
+/* Outlined on dark — sekunder on feature band */
+.btn-outline-light {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.65rem 1.75rem;
+    background: transparent;
+    color: var(--text-light);
+    border: 1px solid rgba(255, 250, 245, 0.55);
+    border-radius: var(--btn-radius);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--btn-transition);
+}
+
+.btn-outline-light:hover {
+    border-color: rgba(255, 250, 245, 0.9);
+}
+
+.btn-outline-light:active {
+    transform: scale(0.95);
+}
+
+/* ════════════════════════════════════
+   CARD — whisper shadow + 12px radius
+════════════════════════════════════ */
+.card {
+    background: var(--brand-white);
+    border-radius: var(--card-radius);
+    box-shadow: var(--shadow-card);
+    transition: box-shadow var(--duration-base) ease, transform var(--duration-base) ease;
+}
+
+.card:hover {
+    box-shadow: var(--shadow-card-hover);
+    transform: translateY(-2px);
+}
+
+/* ════════════════════════════════════
+   FRAP — floating circular cart button
+   Signature element: 56px circle, fixed bottom-right
+   Analog Starbucks Frap button
+════════════════════════════════════ */
+.frap {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    width: var(--frap-size);
+    height: var(--frap-size);
+    border-radius: 50%;
+    background: var(--brand-accent);
+    color: var(--brand-white);
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-frap);
+    transition: box-shadow var(--duration-fast) ease, transform var(--duration-fast) ease;
+    z-index: 30;
+}
+
+.frap:active {
+    transform: scale(0.95);
+    box-shadow: var(--shadow-frap-active);
+}
+
+/* Mini frap — untuk mobile atau secondary position */
+.frap-mini {
+    width: 40px;
+    height: 40px;
+}
+
+/* ════════════════════════════════════
+   MARQUEE
+════════════════════════════════════ */
 @keyframes marquee {
     from {
         transform: translateX(0);
@@ -82,18 +341,20 @@
 .marquee-track {
     display: flex;
     width: max-content;
-    animation: marquee 30s linear infinite;
+    animation: marquee 32s linear infinite;
 }
 
 .marquee-track:hover {
     animation-play-state: paused;
 }
 
-/* ── Animations ─────────────────────────────────────────────── */
+/* ════════════════════════════════════
+   ANIMATIONS
+════════════════════════════════════ */
 @keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(22px);
+        transform: translateY(20px);
     }
 
     to {
@@ -103,7 +364,7 @@
 }
 
 .animate-fade-in-up {
-    animation: fadeInUp 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation: fadeInUp var(--duration-slow) var(--ease-out-expo) forwards;
     opacity: 0;
 }
 
@@ -118,11 +379,28 @@
 }
 
 .animate-fade-in {
-    animation: fadeIn 0.4s ease forwards;
+    animation: fadeIn var(--duration-base) ease forwards;
     opacity: 0;
 }
 
-/* ── Skeleton shimmer ───────────────────────────────────────── */
+/* Image load fade — analog Starbucks opacity 0.3s ease-in */
+@keyframes imgLoad {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.img-fade {
+    animation: imgLoad 0.3s ease-in forwards;
+}
+
+/* ════════════════════════════════════
+   SKELETON
+════════════════════════════════════ */
 @keyframes shimmer {
     0% {
         background-position: -200% 0;
@@ -137,9 +415,12 @@
     background: linear-gradient(90deg, #EDCDBB 25%, #E3B7A0 50%, #EDCDBB 75%);
     background-size: 200% 100%;
     animation: shimmer 1.6s infinite;
+    border-radius: 4px;
 }
 
-/* ── Stagger delays ─────────────────────────────────────────── */
+/* ════════════════════════════════════
+   STAGGER
+════════════════════════════════════ */
 .stagger-1 {
     animation-delay: 0.06s;
 }
@@ -162,4 +443,51 @@
 
 .stagger-6 {
     animation-delay: 0.36s;
+}
+
+/* ════════════════════════════════════
+   PAGE LOADER
+════════════════════════════════════ */
+@keyframes loaderBar {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+/* ════════════════════════════════════
+   FEATURE BAND — full-width dark band
+   Analog House Green band Starbucks
+════════════════════════════════════ */
+.feature-band {
+    background: var(--brand-dark);
+    color: var(--text-light);
+}
+
+/* ════════════════════════════════════
+   SIZE SELECTOR — analog Starbucks PDP
+   Horizontal pill/button selectors
+════════════════════════════════════ */
+.size-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 0.5rem 0.75rem;
+    background: transparent;
+    border: 1.5px solid transparent;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.size-option.active {
+    border-color: var(--brand-accent);
+}
+
+.size-option:active {
+    transform: scale(0.95);
 }
