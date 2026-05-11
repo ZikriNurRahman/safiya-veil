@@ -58,6 +58,7 @@ export interface ColorStock {
   color: string
   stock: number
   code?: string
+  hex?: string
 }
 
 export interface ColorImage {

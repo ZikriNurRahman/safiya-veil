@@ -26,7 +26,7 @@ const COLOR_HEX: Record<string, string> = {
 export interface FormState {
     name: string; base_sku: string; price: string; sale_price: string; badge: string; category: string; description: string;
     image_url: string; stock: string; is_available: boolean; colors: string[];
-    color_stocks: { color: string; stock: number; code?: string }[];
+    color_stocks: { color: string; stock: number; code?: string; hex?: string }[];
     color_images: { color: string; image_url: string; file?: File; preview?: string }[];
 }
 
@@ -186,14 +186,17 @@ export function ProductForm({ editId, initialData, categories, products, onClose
 
     return (
         <div className="rounded-2xl p-5 mb-6" style={{ background: '#FFFBE9', border: '1.5px solid #AD8B73' }}>
+            {/* header */}
             <h3 className="text-base font-semibold mb-4" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
                 {editId ? 'Edit Produk' : 'Tambah Produk Baru'}
             </h3>
 
+            {/* form fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {/* 🔥 PERBAIKAN: Tambah fallbacks || '' di semua value agar aman dari null database */}
+                {/* nama produk */}
                 <input placeholder="Nama produk *" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} className={`${inputCls} md:col-span-2`} style={inputStyle} />
 
+                {/* sku */}
                 <div className="md:col-span-2 flex items-end gap-2">
                     <div className="flex-1">
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: '#8C6E5A' }}>Base SKU Produk</label>
@@ -222,14 +225,19 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                     </button>
                 </div>
 
+                {/* harga normal dan diskon*/}
                 <input type="number" placeholder="Harga Normal (Rp) *" value={form.price || ''} onChange={e => setForm({ ...form, price: e.target.value })} className={inputCls} style={inputStyle} />
                 <input type="number" placeholder="Harga Diskon / Coret (Rp) - Opsional" value={form.sale_price || ''} onChange={e => setForm({ ...form, sale_price: e.target.value })} className={inputCls} style={{ ...inputStyle, borderColor: form.sale_price ? '#C0392B' : '#E3CAA5' }} />
 
+                {/* kategori */}
                 <select value={form.category || (categories[0]?.name ?? '')} onChange={e => setForm({ ...form, category: e.target.value })} className={inputCls} style={inputStyle}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                 </select>
+
+                {/* badge */}
                 <input placeholder="Label (cth: Best Seller) - Opsional" value={form.badge || ''} onChange={e => setForm({ ...form, badge: e.target.value })} maxLength={20} className={inputCls} style={inputStyle} />
 
+                {/* tersedia atau draft */}
                 <div className="md:col-span-2 flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }}>
                     <span className="text-sm" style={{ color: '#3D2B1F' }}>Tampil di Toko?</span>
                     <button onClick={() => setForm({ ...form, is_available: !form.is_available })} className="flex items-center gap-2 text-sm font-semibold transition-all" style={{ color: form.is_available ? '#2E7D32' : '#8C6E5A' }}>
@@ -240,6 +248,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                     </button>
                 </div>
 
+                {/* deskripsi */}
                 <textarea placeholder="Deskripsi produk" value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className={`${inputCls} md:col-span-2`} style={{ ...inputStyle, resize: 'none' }} />
 
                 {/* Gambar Produk */}
@@ -285,7 +294,15 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                                 const ci = form.color_images.find(c => c.color === color) ?? { color, image_url: '', preview: '' }
                                 return (
                                     <div key={color} className="flex flex-wrap items-center gap-2 p-3 rounded-xl" style={{ background: '#FAF5E8', border: '1px solid #E3CAA5' }}>
-                                        <div style={{ width: 12, height: 12, borderRadius: '50%', background: COLOR_HEX[color] ?? '#AD8B73', border: color === 'Putih' ? '1px solid #CEAB93' : undefined }} />
+                                        <div className="relative overflow-hidden shrink-0" style={{ width: 18, height: 18, borderRadius: '50%', background: cs.hex || COLOR_HEX[color] || '#AD8B73', border: color === 'Putih' ? '1px solid #CEAB93' : undefined, boxShadow: '0 0 0 1.5px #E3CAA5' }}>
+                                            <input
+                                                type="color"
+                                                value={cs.hex || COLOR_HEX[color] || '#AD8B73'}
+                                                onChange={e => setForm({ ...form, color_stocks: form.color_stocks.map(c => c.color === color ? { ...c, hex: e.target.value } : c) })}
+                                                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                                title="Klik untuk ubah warna"
+                                            />
+                                        </div>
                                         <span className="text-xs font-medium min-w-[70px]" style={{ color: '#3D2B1F' }}>{color}</span>
 
                                         <div className="flex items-center gap-1">
@@ -323,6 +340,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                 </div>
             </div>
 
+            {/* button batal || upload */}
             <div className="flex gap-2 justify-end mt-4">
                 <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm" style={{ background: '#E3CAA5', color: '#3D2B1F' }}>Batal</button>
                 <button onClick={handleSubmit} disabled={saving || uploading} className="px-4 py-2 rounded-xl text-sm font-semibold" style={{ background: '#AD8B73', color: '#FFFBE9', opacity: saving || uploading ? 0.7 : 1 }}>

@@ -202,8 +202,13 @@ export function ProductCard({ product, index = 0 }: Props) {
               <div className="flex flex-wrap gap-2">
                 {product.colors.map((color) => {
                   const isSelected = selectedColor === color
+                  const cs = product.color_stocks?.find(c => c.color === color)
                   const stock = product.color_stocks?.find(cs => cs.color === color)?.stock ?? product.stock
                   const outOfStock = stock === 0
+
+                  const dotColor = cs?.hex || COLOR_HEX[color] || '#AD8B73'
+
+                  if (outOfStock) return null
 
                   return (
                     <button
@@ -212,7 +217,7 @@ export function ProductCard({ product, index = 0 }: Props) {
                       title={`${color}${outOfStock ? ' (Habis)' : ''}`}
                       className={`w-6 h-6 rounded-full transition-all duration-300 ${isSelected ? "ring-2 ring-[#3D2B1F] ring-offset-2 ring-offset-[#FFFBE9] scale-110" : "ring-1 ring-[#E3CAA5] hover:ring-[#AD8B73]"
                         } ${outOfStock ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
-                      style={{ backgroundColor: COLOR_HEX[color] || '#AD8B73' }}
+                      style={{ backgroundColor: dotColor }}
                     />
                   )
                 })}
@@ -227,8 +232,8 @@ export function ProductCard({ product, index = 0 }: Props) {
             // 🔥 Tombol hanya mati jika sedang loading, atau barang benar-benar habis dan belum ada di keranjang
             disabled={isAddingToCart || (!inCart && isUnavailable)}
             className={`w-full h-11 rounded-xl flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90 ${isAddedToCart ? 'bg-[#2E7D32] hover:bg-[#276a2b]' :
-                inCart ? 'bg-[#3D2B1F] hover:bg-[#2a1d15]' :
-                  'bg-[#AD8B73] hover:bg-[#8C6E5A]'
+              inCart ? 'bg-[#3D2B1F] hover:bg-[#2a1d15]' :
+                'bg-[#AD8B73] hover:bg-[#8C6E5A]'
               } text-[#FFFBE9] border-none`}
           >
             {isAddingToCart ? (
