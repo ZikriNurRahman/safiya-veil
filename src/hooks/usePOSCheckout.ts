@@ -7,6 +7,7 @@ import { generateOrderNumber } from '@/lib/utils'
 interface POSCheckoutParams {
     cart: any[]
     customerName: string
+    customerPhone: string
     paymentMethod: 'CASH' | 'QRIS'
     onSuccess: () => void
 }
@@ -15,7 +16,7 @@ export function usePOSCheckout() {
     const [loading, setLoading] = useState(false)
     const [successOrder, setSuccessOrder] = useState<{ number: string; payUrl?: string } | null>(null)
 
-    const processSale = async ({ cart, customerName, paymentMethod, onSuccess }: POSCheckoutParams) => {
+    const processSale = async ({ cart, customerName, customerPhone, paymentMethod, onSuccess }: POSCheckoutParams) => {
         if (cart.length === 0) return toast.error('Daftar belanja kosong!')
         setLoading(true)
 
@@ -30,7 +31,7 @@ export function usePOSCheckout() {
             const { data: orderData, error: orderError } = await supabase.from('orders').insert({
                 order_number: orderNumber,
                 customer_name: customerName || 'Pelanggan Offline',
-                customer_phone: '-',
+                customer_phone: customerPhone || '-',
                 order_type: 'PICKUP',
                 payment_method: paymentMethod,
                 status: initialStatus,

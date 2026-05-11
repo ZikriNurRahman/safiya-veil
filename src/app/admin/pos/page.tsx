@@ -19,6 +19,7 @@ export default function ManualSalePage() {
 
     // Form State
     const [customerName, setCustomerName] = useState('')
+    const [customerPhone, setCustomerPhone] = useState('')
     const [selectedProductId, setSelectedProductId] = useState('')
     const [selectedColor, setSelectedColor] = useState('')
     const [qty, setQty] = useState(1)
@@ -26,6 +27,11 @@ export default function ManualSalePage() {
 
     // Cart Offline State
     const [cart, setCart] = useState<any[]>([])
+
+    // 🔥 2. Fungsi untuk mengubah harga secara manual di keranjang POS
+    const handleUpdatePrice = (id: number, newPrice: number) => {
+        setCart(cart.map(item => item.id === id ? { ...item, price: newPrice } : item))
+    }
 
     // Ambil data produk saat halaman dimuat
     useEffect(() => {
@@ -83,9 +89,11 @@ export default function ManualSalePage() {
             cart,
             customerName,
             paymentMethod,
+            customerPhone,
             onSuccess: () => {
                 setCart([])
                 setCustomerName('')
+                setCustomerPhone('')
             }
         })
     }
@@ -103,12 +111,12 @@ export default function ManualSalePage() {
     // ── LAYAR UTAMA (POS) ──
     return (
         <div className="p-6 max-w-4xl mx-auto">
-            <h1 className="text-2xl font-bold mb-6" style={{ color: '#3D2B1F' }}>+ Penjualan Manual (POS)</h1>
+            <h1 className="text-2xl font-bold mb-6" style={{ color: '#3D2B1F' }}>Penjualan Offline</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {/* KOLOM KIRI */}
                 <POSForm
-                    customerName={customerName} setCustomerName={setCustomerName}
+                    customerName={customerName} setCustomerName={setCustomerName} setCustomerPhone={setCustomerPhone} customerPhone={customerPhone}
                     products={products}
                     selectedProductId={selectedProductId} setSelectedProductId={setSelectedProductId}
                     selectedColor={selectedColor} setSelectedColor={setSelectedColor}
@@ -121,7 +129,7 @@ export default function ManualSalePage() {
 
                 {/* KOLOM KANAN */}
                 <POSCart
-                    cart={cart} setCart={setCart}
+                    cart={cart} setCart={setCart} onUpdatePrice={handleUpdatePrice}
                     paymentMethod={paymentMethod} setPaymentMethod={setPaymentMethod}
                     loading={loading}
                     onProcessSale={handleProcessSale} // ← Lempar fungsi yg sudah kita bungkus
