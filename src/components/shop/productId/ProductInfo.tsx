@@ -105,6 +105,8 @@ export function ProductInfo({
                             const stock = product.color_stocks?.find(cs => cs.color === color)?.stock ?? product.stock
                             const isOut = stock === 0
                             const isActive = selectedColor === color
+                            const cs = product.color_stocks?.find(c => c.color === color)
+                            const dotColor = cs?.hex || COLOR_HEX[color] || '#AD8B73'
                             return (
                                 <button
                                     key={color} onClick={() => !isOut && handleSelectColor(color)} title={`${color}${isOut ? ' — habis' : ''}`}
@@ -119,7 +121,7 @@ export function ProductInfo({
                                     }}
                                 >
                                     <span style={{
-                                        width: 10, height: 10, borderRadius: '50%', flexShrink: 0, background: COLOR_HEX[color] ?? 'var(--brand-accent)',
+                                        width: 10, height: 10, borderRadius: '50%', flexShrink: 0, backgroundColor: dotColor,
                                         border: color === 'Putih' ? '1px solid var(--brand-secondary)' : undefined, boxShadow: isActive ? '0 0 0 1.5px var(--brand-white)' : undefined,
                                     }} />
                                     {color}
