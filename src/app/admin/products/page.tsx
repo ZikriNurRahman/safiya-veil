@@ -45,12 +45,14 @@ export default function AdminProductsPage() {
   const toggleAvail = async (p: Product) => {
     await supabase.from('products').update({ is_available: !p.is_available }).eq('id', p.id)
     toast.success(`${p.name} → ${!p.is_available ? 'Tersedia' : 'Tidak tersedia'}`)
+    fetchAll() // 🔥 REFRESH OTOMATIS: Tarik data terbaru setelah ubah status
   }
 
   const deleteProduct = async (p: Product) => {
     if (!confirm(`Hapus "${p.name}"? Ini tidak bisa dibatalkan.`)) return
     await supabase.from('products').delete().eq('id', p.id)
     toast.success('Produk dihapus')
+    fetchAll()
   }
 
   const startEdit = (p: Product) => {
@@ -74,12 +76,14 @@ export default function AdminProductsPage() {
       color_images: p.color_images || [],
     })
     setShowForm(true)
+    fetchAll()
   }
 
   const handleCloseForm = () => {
     setShowForm(false)
     setEditId(null)
     setFormInitialData(defaultForm)
+    fetchAll()
   }
 
   return (
