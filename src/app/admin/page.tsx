@@ -9,10 +9,8 @@ import { Search, ChevronLeft, ChevronRight } from 'lucide-react'
 
 // Import komponen & utils yang sudah dipecah
 import { StatCard } from '@/components/admin/StatCard'
-import { PrintReceipt } from '@/components/admin/PrintReceipt'
 import { exportCSV } from '@/lib/exportCSV'
 import { useOrderPagination } from '@/hooks/useOrderPagination'
-import { EmptyState } from '@/components/admin/EmptyState'
 import { PaginationControls } from '@/components/admin/PaginationControls'
 import { OrderList } from '@/components/admin/OrderList'
 
@@ -82,6 +80,7 @@ export default function AdminDashboardPage() {
   }, [fetchData])
 
   useEffect(() => {
+    fetchData()
     const channel = supabase
       .channel('dashboard-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {

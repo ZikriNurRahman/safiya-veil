@@ -148,17 +148,17 @@ export function ProductCard({ product, index = 0 }: Props) {
             </div>
           )}
 
-          <div className="absolute top-3 left-3 flex flex-col gap-2 z-20 items-start">
-            <Badge variant="secondary" className="bg-[#FFFBE9]/90 hover:bg-[#FFFBE9] text-[#8C6E5A] text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-sm border-none">
+          <div className="absolute top-2 left-2 sm:top-3 sm:left-3 flex flex-col gap-1 sm:gap-2 z-20 items-start">
+            <Badge variant="secondary" className="bg-[#FFFBE9]/90 hover:bg-[#FFFBE9] text-[#8C6E5A] text-[8px] sm:text-[10px] px-1.5 py-0 sm:px-2.5 sm:py-0.5 font-bold uppercase tracking-wider backdrop-blur-sm shadow-sm border-none">
               {product.category}
             </Badge>
             {product.badge && (
-              <Badge className="bg-[#AD8B73] hover:bg-[#8C6E5A] text-[#FFFBE9] text-[10px] font-bold uppercase tracking-wider shadow-sm border-none">
+              <Badge className="bg-[#AD8B73] hover:bg-[#8C6E5A] text-[#FFFBE9] text-[8px] sm:text-[10px] px-1.5 py-0 sm:px-2.5 sm:py-0.5 font-bold uppercase tracking-wider shadow-sm border-none">
                 {product.badge}
               </Badge>
             )}
             {hasDiscount && (
-              <Badge className="bg-[#C0392B] hover:bg-[#A93226] text-white text-[10px] font-bold uppercase tracking-wider shadow-sm border-none">
+              <Badge className="bg-[#C0392B] hover:bg-[#A93226] text-white text-[8px] sm:text-[10px] px-1.5 py-0 sm:px-2.5 sm:py-0.5 font-bold uppercase tracking-wider shadow-sm border-none">
                 -{discountPercent}%
               </Badge>
             )}
@@ -175,31 +175,30 @@ export function ProductCard({ product, index = 0 }: Props) {
           </Button> */}
         </div>
 
-        <CardContent className="p-4 flex flex-col flex-1 gap-4 border-none">
+        <CardContent className="p-3 sm:p-4 flex flex-col flex-1 gap-2 sm:gap-4 border-none">
           <div>
-            <h3 className="font-semibold line-clamp-1 text-lg" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
+            <h3 className="font-semibold line-clamp-2 text-base sm:text-lg leading-tight" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
               {product.name}
             </h3>
-
           </div>
 
-          <div className="flex items-baseline gap-2">
-            <span className="text-xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: hasDiscount ? '#C0392B' : '#AD8B73' }}>
+          <div className="flex items-baseline gap-1.5 sm:gap-2">
+            <span className="text-lg sm:text-xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: hasDiscount ? '#C0392B' : '#AD8B73' }}>
               {formatRupiah(product.sale_price || product.price)}
             </span>
             {hasDiscount && (
-              <span className="text-xs text-[#8C6E5A] line-through font-medium">
+              <span className="text-[10px] sm:text-xs text-[#8C6E5A] line-through font-medium">
                 {formatRupiah(product.price)}
               </span>
             )}
           </div>
 
           {product.colors && product.colors.length > 0 && (
-            <div className="space-y-2 mt-auto">
-              <div className="text-[11px] font-semibold tracking-wider uppercase text-[#8C6E5A]">
+            <div className="space-y-1.5 sm:space-y-2 mt-auto pt-1">
+              <div className="text-[9px] sm:text-[11px] font-semibold tracking-wider uppercase text-[#8C6E5A]">
                 Pilih Warna
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {product.colors.map((color) => {
                   const isSelected = selectedColor === color
                   const cs = product.color_stocks?.find(c => c.color === color)
@@ -215,7 +214,8 @@ export function ProductCard({ product, index = 0 }: Props) {
                       key={color}
                       onClick={(e) => { e.preventDefault(); if (!outOfStock) setSelectedColor(color); }}
                       title={`${color}${outOfStock ? ' (Habis)' : ''}`}
-                      className={`w-6 h-6 rounded-full transition-all duration-300 ${isSelected ? "ring-2 ring-[#3D2B1F] ring-offset-2 ring-offset-[#FFFBE9] scale-110" : "ring-1 ring-[#E3CAA5] hover:ring-[#AD8B73]"
+                      // 🔥 PERBAIKAN: Bulatan warna sedikit mengecil di HP
+                      className={`w-5 h-5 sm:w-6 sm:h-6 rounded-full transition-all duration-300 shrink-0 ${isSelected ? "ring-2 ring-[#3D2B1F] ring-offset-2 ring-offset-[#FFFBE9] scale-110" : "ring-1 ring-[#E3CAA5] hover:ring-[#AD8B73]"
                         } ${outOfStock ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
                       style={{ backgroundColor: dotColor }}
                     />
@@ -226,37 +226,36 @@ export function ProductCard({ product, index = 0 }: Props) {
           )}
         </CardContent>
 
-        <CardFooter className="p-4 pt-0 border-none">
+        <CardFooter className="p-3 pt-0 sm:p-4 sm:pt-0 border-none">
           <Button
             onClick={inCart ? handleToCart : handleAddToCart}
-            // 🔥 Tombol hanya mati jika sedang loading, atau barang benar-benar habis dan belum ada di keranjang
             disabled={isAddingToCart || (!inCart && isUnavailable)}
-            className={`w-full h-11 rounded-xl flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90 ${isAddedToCart ? 'bg-[#2E7D32] hover:bg-[#276a2b]' :
+            // 🔥 PERBAIKAN: Tombol lebih pendek & teks lebih kecil di HP (h-9 text-[11px])
+            className={`w-full h-9 sm:h-11 rounded-xl flex items-center justify-center text-[11px] sm:text-sm font-semibold transition-all duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90 px-1 sm:px-4 ${isAddedToCart ? 'bg-[#2E7D32] hover:bg-[#276a2b]' :
               inCart ? 'bg-[#3D2B1F] hover:bg-[#2a1d15]' :
                 'bg-[#AD8B73] hover:bg-[#8C6E5A]'
               } text-[#FFFBE9] border-none`}
           >
             {isAddingToCart ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Memproses...
+                <Loader2 className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin shrink-0" />
+                <span className="truncate">Proses...</span>
               </>
             ) : isAddedToCart ? (
               <>
-                <Check className="mr-2 h-4 w-4" />
-                Berhasil Ditambah
+                <Check className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Berhasil</span>
               </>
             ) : inCart ? (
               <>
-                {/* 🔥 Jika sudah di keranjang */}
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Pergi ke Keranjang
+                <ShoppingBag className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                <span className="truncate">Ke Keranjang</span>
               </>
             ) : (
               <>
-                {/* 🔥 Jika belum ada di keranjang */}
-                <ShoppingBag className="mr-2 h-4 w-4" />
-                Masukkan Keranjang
+                <ShoppingBag className="mr-1.5 sm:mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+                {/* 🔥 PERBAIKAN: Teks dipersingkat agar tidak kepanjangan di HP */}
+                <span className="truncate">+ Keranjang</span>
               </>
             )}
           </Button>

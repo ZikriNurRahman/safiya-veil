@@ -46,6 +46,7 @@ export default function AdminOrdersPage() {
 
   // ── Realtime subscription ──────────────────────────────────────────────
   useEffect(() => {
+    fetchOrders()
     const channel = supabase
       .channel('admin-orders-realtime')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
@@ -65,6 +66,7 @@ export default function AdminOrdersPage() {
     const { error } = await supabase.from('orders').update({ status: newStatus }).eq('id', orderId)
     if (error) toast.error('Gagal update status')
     else toast.success(`Status diupdate → ${newStatus}`)
+    fetchOrders()
   }
 
   // 1. Filter data berdasarkan Status (Dropdown)
