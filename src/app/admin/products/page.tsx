@@ -57,16 +57,21 @@ export default function AdminProductsPage() {
     setEditId(p.id)
     setFormInitialData({
       name: p.name,
-      base_sku: p.base_sku ?? '', // ← Update: Masukkan Base SKU saat edit
+      base_sku: p.base_sku ?? '',
       price: String(p.price),
+
+      // 🔥 TAMBAHAN: Masukkan data diskon dan badge saat mode Edit
+      sale_price: p.sale_price ? String(p.sale_price) : '',
+      badge: p.badge || '',
+
       category: p.category,
-      description: p.description ?? '',
-      image_url: p.image_url ?? '',
+      description: p.description || '',
+      image_url: p.image_url || '',
       stock: String(p.stock),
       is_available: p.is_available,
-      colors: p.colors ?? [],
-      color_stocks: (p.color_stocks ?? []), // ← Ini sudah memuat code warna bawaan Supabase
-      color_images: (p.color_images ?? []).map(ci => ({ color: ci.color, image_url: ci.image_url })),
+      colors: p.colors || [],
+      color_stocks: p.color_stocks || [],
+      color_images: p.color_images || [],
     })
     setShowForm(true)
   }
