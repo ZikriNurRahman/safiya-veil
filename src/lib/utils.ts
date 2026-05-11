@@ -2,6 +2,13 @@
 // Utility functions yang dipakai di seluruh aplikasi
 
 // Format angka ke Rupiah — e.g., 250000 → "Rp 250.000"
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export function formatRupiah(amount: number): string {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -15,11 +22,6 @@ export function generateOrderNumber(): string {
   const ts = Math.floor(Date.now() / 2).toString(36).toUpperCase()
   const timePart = ts.padStart(8, '0')
   return `SV-${timePart}`
-}
-
-// Helper gabung class names Tailwind
-export function cn(...classes: (string | boolean | undefined | null)[]): string {
-  return classes.filter(Boolean).join(' ')
 }
 
 // Format tanggal dan waktu Indonesia — e.g., "22 Apr 2026, 14:35"

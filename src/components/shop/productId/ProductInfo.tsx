@@ -22,16 +22,26 @@ export function ProductInfo({
 }: ProductInfoProps) {
     return (
         <div style={{ paddingTop: 4 }}>
-            {/* Kategori label */}
-            <span style={{
-                display: 'inline-block', fontSize: '0.55rem', fontWeight: 700,
-                letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase',
-                color: 'var(--brand-accent)', marginBottom: 12,
-            }}>
-                {product.category}
-            </span>
+            {/* 🔥 UPDATE: Kategori & Badge label sejajar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                <span style={{
+                    display: 'inline-block', fontSize: '0.55rem', fontWeight: 700,
+                    letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase',
+                    color: 'var(--brand-accent)',
+                }}>
+                    {product.category}
+                </span>
+                {product.badge && (
+                    <span style={{
+                        display: 'inline-block', fontSize: '0.55rem', fontWeight: 700,
+                        letterSpacing: 'var(--tracking-wide)', textTransform: 'uppercase',
+                        background: '#C0392B', color: '#FFF', padding: '0.2rem 0.6rem', borderRadius: 50,
+                    }}>
+                        {product.badge}
+                    </span>
+                )}
+            </div>
 
-            {/* Nama produk */}
             <h1 style={{
                 fontFamily: 'var(--font-heading)', color: 'var(--brand-dark)',
                 fontSize: 'clamp(1.5rem, 3.5vw, 2.3rem)', fontWeight: 500,
@@ -40,17 +50,33 @@ export function ProductInfo({
                 {product.name}
             </h1>
 
-            {/* Harga */}
-            <p style={{
-                fontFamily: 'var(--font-heading)', color: 'var(--brand-accent)',
-                fontSize: '1.9rem', fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 20,
-            }}>
-                {formatRupiah(product.price)}
-            </p>
+            {/* 🔥 UPDATE: Harga Normal Dicoret & Harga Diskon Merah */}
+            {product.sale_price ? (
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 20 }}>
+                    <p style={{
+                        fontFamily: 'var(--font-heading)', color: '#C0392B',
+                        fontSize: '2.2rem', fontWeight: 700, letterSpacing: '-0.02em',
+                    }}>
+                        {formatRupiah(product.sale_price)}
+                    </p>
+                    <p style={{
+                        fontSize: '1.2rem', color: 'var(--brand-muted)',
+                        textDecoration: 'line-through', fontWeight: 500
+                    }}>
+                        {formatRupiah(product.price)}
+                    </p>
+                </div>
+            ) : (
+                <p style={{
+                    fontFamily: 'var(--font-heading)', color: 'var(--brand-accent)',
+                    fontSize: '1.9rem', fontWeight: 600, letterSpacing: '-0.02em', marginBottom: 20,
+                }}>
+                    {formatRupiah(product.price)}
+                </p>
+            )}
 
             <div style={{ height: 1, background: 'var(--brand-secondary)', marginBottom: 20 }} />
 
-            {/* Deskripsi */}
             {product.description && (
                 <p style={{
                     fontSize: '0.85rem', color: 'var(--brand-muted)', lineHeight: 1.85,
@@ -60,7 +86,6 @@ export function ProductInfo({
                 </p>
             )}
 
-            {/* Pilih Warna */}
             {product.colors && product.colors.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
                     <p style={{
@@ -82,26 +107,20 @@ export function ProductInfo({
                             const isActive = selectedColor === color
                             return (
                                 <button
-                                    key={color}
-                                    onClick={() => !isOut && handleSelectColor(color)}
-                                    title={`${color}${isOut ? ' — habis' : ''}`}
+                                    key={color} onClick={() => !isOut && handleSelectColor(color)} title={`${color}${isOut ? ' — habis' : ''}`}
                                     style={{
                                         display: isOut ? 'none' : 'flex', alignItems: 'center', gap: 7,
                                         padding: '0.45rem 0.85rem', borderRadius: 50,
                                         background: isActive ? 'var(--brand-dark)' : 'transparent',
                                         color: isActive ? 'var(--text-light)' : isOut ? 'var(--brand-muted)' : 'var(--brand-dark)',
                                         border: isActive ? '1.5px solid var(--brand-dark)' : '1.5px solid var(--brand-secondary)',
-                                        cursor: isOut ? 'not-allowed' : 'pointer',
-                                        opacity: isOut ? 0.4 : 1, fontSize: '0.72rem', fontWeight: isActive ? 700 : 500,
-                                        letterSpacing: 'var(--tracking-tight)', fontFamily: 'var(--font-sans)',
-                                        transition: 'all 0.15s ease',
+                                        cursor: isOut ? 'not-allowed' : 'pointer', opacity: isOut ? 0.4 : 1, fontSize: '0.72rem', fontWeight: isActive ? 700 : 500,
+                                        letterSpacing: 'var(--tracking-tight)', fontFamily: 'var(--font-sans)', transition: 'all 0.15s ease',
                                     }}
                                 >
                                     <span style={{
-                                        width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
-                                        background: COLOR_HEX[color] ?? 'var(--brand-accent)',
-                                        border: color === 'Putih' ? '1px solid var(--brand-secondary)' : undefined,
-                                        boxShadow: isActive ? '0 0 0 1.5px var(--brand-white)' : undefined,
+                                        width: 10, height: 10, borderRadius: '50%', flexShrink: 0, background: COLOR_HEX[color] ?? 'var(--brand-accent)',
+                                        border: color === 'Putih' ? '1px solid var(--brand-secondary)' : undefined, boxShadow: isActive ? '0 0 0 1.5px var(--brand-white)' : undefined,
                                     }} />
                                     {color}
                                 </button>
@@ -111,7 +130,6 @@ export function ProductInfo({
                 </div>
             )}
 
-            {/* Stok status */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
                 <div style={{
                     width: 7, height: 7, borderRadius: '50%',
@@ -122,19 +140,13 @@ export function ProductInfo({
                 </p>
             </div>
 
-            {/* CTA */}
             <div style={{ display: 'flex', gap: 10, marginBottom: 24, flexWrap: 'wrap' }}>
                 {canAdd && (
-                    <button
-                        onClick={handleAddToCart}
-                        className="btn-dark"
-                        style={{ flex: 1, background: btnPressed ? 'var(--brand-accent)' : inCart ? 'var(--brand-accent)' : undefined }}
-                    >
+                    <button onClick={handleAddToCart} className="btn-dark" style={{ flex: 1, background: btnPressed ? 'var(--brand-accent)' : inCart ? 'var(--brand-accent)' : undefined }}>
                         {btnPressed ? '✓ Ditambahkan' : inCart ? '✓ Sudah di Keranjang' : '+ Tambah ke Keranjang'}
                     </button>
                 )}
                 {inCart && (
-                    // 🔥 PERBAIKAN: Gunakan <Link> dari Next.js, bukan tag <a>
                     <Link href="/shop/cart" className="btn-outline" style={{ whiteSpace: 'nowrap' }}>
                         Lihat Keranjang
                     </Link>
