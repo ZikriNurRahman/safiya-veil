@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { formatRupiah } from '@/lib/utils'
 import type { OrderType, PaymentMethod } from '@/types/database'
+import { CheckoutConfirmModal } from './CheckoutConfirmModal'
 
 interface CartItem {
     productId: string
@@ -35,11 +37,23 @@ export function CartSummary({
     paymentMethod, setPaymentMethod, isReadyToCheckout, submitting, handleCheckout
 }: CartSummaryProps) {
 
+    // State untuk mengontrol kemunculan Modal S&K
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
     const inputStyle: React.CSSProperties = {
         width: '100%', padding: '11px 14px', borderRadius: 12,
         border: '1.5px solid #E3CAA5', background: '#FFFBE9',
         color: '#3D2B1F', fontSize: 14, outline: 'none',
         fontFamily: 'var(--font-sans)',
+    }
+
+    const triggerCheckout = () => {
+        if (!isReadyToCheckout() || submitting) return
+        setIsConfirmOpen(true)
+    }
+
+    const executeCheckout = () => {
+        handleCheckout()
     }
 
     return (
@@ -82,43 +96,51 @@ export function CartSummary({
                 <div className="grid grid-cols-2 gap-2">
                     {(['PICKUP', 'DELIVERY'] as OrderType[]).map(v => (
                         <button key={v} onClick={() => setOrderType(v)}
-                            className="py-2 rounded-xl text-xs font-semibold"
+                            className="py-2 rounded-xl text-xs font-semibold transition-all"
                             style={{
                                 background: orderType === v ? '#3D2B1F' : '#F5ECD8',
                                 color: orderType === v ? '#FFFBE9' : '#8C6E5A',
                             }}>
-                            {v === 'PICKUP' ? '🏪 Ambil' : '🚚 Dikirim'}
+                            {v === 'PICKUP' ? '🏪 Ambil di Toko' : '🚚 Dikirim (Delivery)'}
                         </button>
                     ))}
                 </div>
 
+                {/* Textarea jika Delivery HILANGKAN ALERT KUNING */}
                 {orderType === 'DELIVERY' && (
-                    <textarea
-                        placeholder="Alamat pengiriman *"
-                        value={customerAddress}
-                        onChange={e => setCustomerAddress(e.target.value)}
-                        rows={2}
-                        style={{ ...inputStyle, resize: 'none' }}
-                    />
+                    <div className="animate-fade-in">
+                        <textarea
+                            placeholder="Alamat pengiriman lengkap (Jalan, RT/RW, Kel, Kec, Kota, Kode Pos) *"
+                            value={customerAddress}
+                            onChange={e => setCustomerAddress(e.target.value)}
+                            rows={3}
+                            style={{ ...inputStyle, resize: 'none' }}
+                        />
+                    </div>
                 )}
 
-                {/* Payment method — HANYA QRIS */}
-                <div className="grid grid-cols-2 gap-2">
-                    {(['QRIS'] as PaymentMethod[]).map(m => (
-                        <button key={m} onClick={() => setPaymentMethod(m)}
-                            className="py-2.5 rounded-xl text-xs font-semibold"
-                            style={{
-                                background: paymentMethod === m ? '#AD8B73' : '#F5ECD8',
-                                color: paymentMethod === m ? '#FFFBE9' : '#8C6E5A',
-                            }}>
-                            {m === 'QRIS' ? '📱 QRIS' : '🏦 Bank Transfer'}
-                        </button>
-                    ))}
+                {/* Payment method */}
+                <div className="mb-2 mt-4">
+                    <p className="text-xs font-semibold uppercase tracking-wider mb-2" style={{ color: '#8C6E5A' }}>
+                        Metode Pembayaran
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                        {(['QRIS'] as PaymentMethod[]).map(m => (
+                            <button key={m} onClick={() => setPaymentMethod(m)}
+                                className="py-2.5 rounded-xl text-xs font-semibold transition-all"
+                                style={{
+                                    background: paymentMethod === m ? '#AD8B73' : '#F5ECD8',
+                                    color: paymentMethod === m ? '#FFFBE9' : '#8C6E5A',
+                                }}>
+                                {m === 'QRIS' ? '📱 QRIS' : '🏦 Bank Transfer'}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                {/* Tombol checkout */}
+                {/* Tombol checkout (Buka Modal) */}
                 <button
-                    onClick={handleCheckout}
+                    onClick={triggerCheckout}
                     disabled={!isReadyToCheckout() || submitting}
                     className="w-full py-4 rounded-xl text-sm font-semibold tracking-wide transition-opacity"
                     style={{
@@ -135,6 +157,14 @@ export function CartSummary({
                     Pembayaran aman via Midtrans
                 </p>
             </div>
+
+            <CheckoutConfirmModal
+                isOpen={isConfirmOpen}
+                onClose={() => setIsConfirmOpen(false)}
+                onConfirm={executeCheckout}
+                total={total}
+                submitting={submitting}
+            />
         </div>
     )
 }

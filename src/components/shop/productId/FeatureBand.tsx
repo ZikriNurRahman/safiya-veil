@@ -10,7 +10,7 @@ export function FeatureBand() {
         >
             {[
                 ['🚚', 'Pengiriman ke seluruh Indonesia'],
-                ['✅', 'Produk original bergaransi'],
+                ['✅', 'Produk original, kualitas terjamin'],
                 ['📦', 'Dikemas dengan aman & rapi'],
                 ['💬', 'Customer service responsif'],
             ].map(([icon, text]) => (

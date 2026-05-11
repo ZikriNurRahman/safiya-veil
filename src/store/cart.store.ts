@@ -31,7 +31,6 @@ const itemKey = (productId: string, color?: string) =>
   `${productId}::${color ?? ''}`
 
 export const useCartStore = create<CartStore>()(
-  // ← wrap dengan persist middleware
   persist(
     (set, get) => ({
       items: [],
@@ -57,7 +56,8 @@ export const useCartStore = create<CartStore>()(
           items: [...state.items, {
             productId: product.id,
             productName: product.name,
-            unitPrice: product.price,
+            // 🔥 UPDATE: Gunakan sale_price jika ada, jika tidak gunakan harga normal
+            unitPrice: product.sale_price ?? product.price,
             quantity: 1,
             notes: '',
             selectedColor: color,
@@ -135,8 +135,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'safiya-cart',           // ← key di localStorage
-      // Hanya persist items + form data, skip fungsi
+      name: 'safiya-cart',
       partialize: (state) => ({
         items: state.items,
         customerName: state.customerName,

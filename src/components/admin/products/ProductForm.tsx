@@ -24,14 +24,14 @@ const COLOR_HEX: Record<string, string> = {
 }
 
 export interface FormState {
-    name: string; base_sku: string; price: string; category: string; description: string;
+    name: string; base_sku: string; price: string; sale_price: string; badge: string; category: string; description: string;
     image_url: string; stock: string; is_available: boolean; colors: string[];
     color_stocks: { color: string; stock: number; code?: string }[];
     color_images: { color: string; image_url: string; file?: File; preview?: string }[];
 }
 
 export const defaultForm: FormState = {
-    name: '', base_sku: '', price: '', category: '', description: '', image_url: '', stock: '0',
+    name: '', base_sku: '', price: '', sale_price: '', badge: '', category: '', description: '', image_url: '', stock: '0',
     is_available: true, colors: [], color_stocks: [], color_images: [],
 }
 
@@ -129,7 +129,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
             finalImageUrl = await uploadImage(imageFile)
             if (!finalImageUrl) { setSaving(false); return }
         } else if (imageMode === 'url') {
-            finalImageUrl = form.image_url.trim() || null
+            finalImageUrl = form.image_url?.trim() || null
         } else if (editId) {
             const existing = products.find(p => p.id === editId)
             finalImageUrl = existing?.image_url ?? null
@@ -147,10 +147,12 @@ export function ProductForm({ editId, initialData, categories, products, onClose
 
         const payload = {
             name: form.name.trim(),
-            base_sku: form.base_sku.trim() || null,
+            base_sku: form.base_sku?.trim() || null,
             price: parseFloat(form.price),
+            sale_price: form.sale_price ? parseFloat(form.sale_price) : null,
+            badge: form.badge?.trim() || null,
             category: form.category || (categories[0]?.name ?? ''),
-            description: form.description.trim(),
+            description: form.description?.trim() || '',
             image_url: finalImageUrl,
             is_available: form.is_available,
             colors: form.colors,
@@ -174,7 +176,6 @@ export function ProductForm({ editId, initialData, categories, products, onClose
     }
 
     const syncColorArrays = (newColors: string[], currentColorStocks: FormState['color_stocks'], currentColorImages: FormState['color_images']) => {
-        // Otomatis generate 3 huruf awal warna (uppercase) jika belum ada code
         const newStocks = newColors.map(c => currentColorStocks.find(cs => cs.color === c) ?? { color: c, stock: 0, code: c.substring(0, 3).toUpperCase() })
         const newImages = newColors.map(c => currentColorImages.find(ci => ci.color === c) ?? { color: c, image_url: '' })
         return { newStocks, newImages }
@@ -190,15 +191,15 @@ export function ProductForm({ editId, initialData, categories, products, onClose
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <input placeholder="Nama produk *" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} className={`${inputCls} md:col-span-2`} style={inputStyle} />
+                {/* 🔥 PERBAIKAN: Tambah fallbacks || '' di semua value agar aman dari null database */}
+                <input placeholder="Nama produk *" value={form.name || ''} onChange={e => setForm({ ...form, name: e.target.value })} className={`${inputCls} md:col-span-2`} style={inputStyle} />
 
-                {/* ── BASE SKU & AUTO GENERATOR ── */}
                 <div className="md:col-span-2 flex items-end gap-2">
                     <div className="flex-1">
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={{ color: '#8C6E5A' }}>Base SKU Produk</label>
                         <input
                             placeholder="Contoh: HJB-PSM"
-                            value={form.base_sku}
+                            value={form.base_sku || ''}
                             onChange={e => setForm({ ...form, base_sku: e.target.value.toUpperCase().replace(/\s/g, '-') })}
                             className={inputCls} style={inputStyle}
                         />
@@ -208,7 +209,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                             e.preventDefault()
                             const cat = form.category || (categories[0]?.name ?? '')
                             const catCode = cat.substring(0, 3).toUpperCase()
-                            const nameWords = form.name.split(' ').filter(Boolean)
+                            const nameWords = form.name?.split(' ').filter(Boolean) || []
                             let nameCode = ''
                             if (nameWords.length >= 2) nameCode = (nameWords[0].substring(0, 2) + nameWords[1][0]).toUpperCase()
                             else if (nameWords.length === 1) nameCode = nameWords[0].substring(0, 3).toUpperCase()
@@ -221,12 +222,15 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                     </button>
                 </div>
 
-                <input type="number" placeholder="Harga (Rp) *" value={form.price} onChange={e => setForm({ ...form, price: e.target.value })} className={inputCls} style={inputStyle} />
+                <input type="number" placeholder="Harga Normal (Rp) *" value={form.price || ''} onChange={e => setForm({ ...form, price: e.target.value })} className={inputCls} style={inputStyle} />
+                <input type="number" placeholder="Harga Diskon / Coret (Rp) - Opsional" value={form.sale_price || ''} onChange={e => setForm({ ...form, sale_price: e.target.value })} className={inputCls} style={{ ...inputStyle, borderColor: form.sale_price ? '#C0392B' : '#E3CAA5' }} />
+
                 <select value={form.category || (categories[0]?.name ?? '')} onChange={e => setForm({ ...form, category: e.target.value })} className={inputCls} style={inputStyle}>
                     {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                 </select>
+                <input placeholder="Label (cth: Best Seller) - Opsional" value={form.badge || ''} onChange={e => setForm({ ...form, badge: e.target.value })} maxLength={20} className={inputCls} style={inputStyle} />
 
-                <div className="flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }}>
+                <div className="md:col-span-2 flex items-center justify-between px-3 py-2.5 rounded-xl" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }}>
                     <span className="text-sm" style={{ color: '#3D2B1F' }}>Tampil di Toko?</span>
                     <button onClick={() => setForm({ ...form, is_available: !form.is_available })} className="flex items-center gap-2 text-sm font-semibold transition-all" style={{ color: form.is_available ? '#2E7D32' : '#8C6E5A' }}>
                         <div style={{ width: 40, height: 22, borderRadius: 11, background: form.is_available ? '#2E7D32' : '#E3CAA5', position: 'relative', transition: 'background 0.2s' }}>
@@ -236,7 +240,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                     </button>
                 </div>
 
-                <textarea placeholder="Deskripsi produk" value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className={`${inputCls} md:col-span-2`} style={{ ...inputStyle, resize: 'none' }} />
+                <textarea placeholder="Deskripsi produk" value={form.description || ''} onChange={e => setForm({ ...form, description: e.target.value })} rows={3} className={`${inputCls} md:col-span-2`} style={{ ...inputStyle, resize: 'none' }} />
 
                 {/* Gambar Produk */}
                 <div className="md:col-span-2">
@@ -261,7 +265,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                             <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
                         </div>
                     ) : (
-                        <input placeholder="https://example.com/gambar.jpg" value={form.image_url} onChange={e => { setForm({ ...form, image_url: e.target.value }); setImagePreview(e.target.value || null) }} className={inputCls} style={inputStyle} />
+                        <input placeholder="https://example.com/gambar.jpg" value={form.image_url || ''} onChange={e => { setForm({ ...form, image_url: e.target.value }); setImagePreview(e.target.value || null) }} className={inputCls} style={inputStyle} />
                     )}
                 </div>
 
@@ -284,7 +288,6 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                                         <div style={{ width: 12, height: 12, borderRadius: '50%', background: COLOR_HEX[color] ?? '#AD8B73', border: color === 'Putih' ? '1px solid #CEAB93' : undefined }} />
                                         <span className="text-xs font-medium min-w-[70px]" style={{ color: '#3D2B1F' }}>{color}</span>
 
-                                        {/* ── KODE WARNA (SKU) ── */}
                                         <div className="flex items-center gap-1">
                                             <span className="text-xs" style={{ color: '#8C6E5A' }}>Kode:</span>
                                             <input
@@ -303,7 +306,7 @@ export function ProductForm({ editId, initialData, categories, products, onClose
                                         </div>
                                         <div className="flex items-center gap-1 flex-1 min-w-[120px]">
                                             <span className="text-xs" style={{ color: '#8C6E5A' }}>URL:</span>
-                                            <input placeholder="URL gambar" value={ci.image_url} onChange={e => setForm({ ...form, color_images: form.color_images.map(c => c.color === color ? { ...c, image_url: e.target.value } : c) })} className="flex-1 px-2 py-1 rounded-lg text-xs outline-none" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }} />
+                                            <input placeholder="URL gambar" value={ci.image_url || ''} onChange={e => setForm({ ...form, color_images: form.color_images.map(c => c.color === color ? { ...c, image_url: e.target.value } : c) })} className="flex-1 px-2 py-1 rounded-lg text-xs outline-none" style={{ border: '1.5px solid #E3CAA5', background: '#FFFBE9' }} />
                                         </div>
                                         <label className="px-2 py-1 rounded-lg text-xs cursor-pointer" style={{ background: '#E3CAA5', color: '#3D2B1F' }}>📎 Upload
                                             <input type="file" accept="image/*" className="hidden" onChange={e => {

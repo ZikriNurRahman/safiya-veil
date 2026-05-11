@@ -1,23 +1,18 @@
 'use client'
-// src/components/shop/ProductCard.tsx
-// Starbucks-inspired card design:
-// • whisper-soft layered shadow (--shadow-card)
-// • 12px border-radius (--card-radius)
-// • scale(0.95) active on "Tambah" button
-// • Color swatches dengan ring active (analog size-selector ring Starbucks)
-// • Full-pill add button
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Heart, ShoppingBag, ChevronLeft, ChevronRight, Check, Loader2, Star } from 'lucide-react'
 import { useCartStore } from '@/store/cart.store'
 import { formatRupiah } from '@/lib/utils'
 import type { Product } from '@/types/database'
-import { toast } from 'sonner'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
-interface Props {
-  product: Product
-  index?: number
-}
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 
 const COLOR_HEX: Record<string, string> = {
   'Hitam': '#1C1C1C', 'Putih': '#F5F5F5', 'Abu-abu': '#9CA3AF',
@@ -29,273 +24,239 @@ const COLOR_HEX: Record<string, string> = {
   'Oranye': '#E65100', 'Biru': '#1565C0',
 }
 
+interface Props {
+  product: Product
+  index?: number
+}
+
 export function ProductCard({ product, index = 0 }: Props) {
   const addItem = useCartStore(s => s.addItem)
   const cartItems = useCartStore(s => s.items)
+  const router = useRouter()
 
-  const firstAvailColor =
-    product.color_stocks?.find(cs => cs.stock > 0)?.color ??
-    product.colors?.[0]
-
+  const firstAvailColor = product.color_stocks?.find(cs => cs.stock > 0)?.color ?? product.colors?.[0]
   const [selectedColor, setSelectedColor] = useState<string | undefined>(firstAvailColor)
-  const [pressed, setPressed] = useState(false)
 
-  const inCart = cartItems.some(i => i.productId === product.id && i.selectedColor === selectedColor)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [isWishlisted, setIsWishlisted] = useState(false)
+  const [isAddingToCart, setIsAddingToCart] = useState(false)
+  const [isAddedToCart, setIsAddedToCart] = useState(false)
+
+  const allImages = [
+    product.image_url,
+    ...(product.color_images?.map(ci => ci.image_url) || [])
+  ].filter(Boolean) as string[]
+
+  const uniqueImages = Array.from(new Set(allImages))
+  if (uniqueImages.length === 0) uniqueImages.push('')
 
   const selectedStock = selectedColor
     ? (product.color_stocks?.find(cs => cs.color === selectedColor)?.stock ?? product.stock)
     : product.stock
 
   const isUnavailable = !product.is_available || selectedStock === 0
+  const inCart = cartItems.some(i => i.productId === product.id && i.selectedColor === selectedColor)
 
-  const displayImage = selectedColor
-    ? (product.color_images?.find(ci => ci.color === selectedColor)?.image_url ?? product.image_url)
-    : product.image_url
+  const hasDiscount = product.sale_price && product.sale_price < product.price
+  const discountPercent = hasDiscount ? Math.round(((product.price - product.sale_price!) / product.price) * 100) : 0
 
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const nextImage = (e: React.MouseEvent) => {
     e.preventDefault()
-    if (isUnavailable) return
-    addItem(product, selectedColor)
-    setPressed(true)
-    toast.success(`${product.name}${selectedColor ? ` — ${selectedColor}` : ''} ditambahkan!`)
-    setTimeout(() => setPressed(false), 1200)
+    setCurrentImageIndex((prev) => (prev + 1) % uniqueImages.length)
   }
 
-  const handleColorClick = (e: React.MouseEvent, color: string) => {
-    e.stopPropagation()
+  const prevImage = (e: React.MouseEvent) => {
     e.preventDefault()
-    setSelectedColor(color)
+    setCurrentImageIndex((prev) => (prev - 1 + uniqueImages.length) % uniqueImages.length)
+  }
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    if (isUnavailable || isAddedToCart) return
+
+    setIsAddingToCart(true)
+    setTimeout(() => {
+      addItem(product, selectedColor)
+      setIsAddingToCart(false)
+      setIsAddedToCart(true)
+      toast.success(`${product.name} dimasukkan keranjang!`)
+      setTimeout(() => setIsAddedToCart(false), 2000)
+    }, 600)
+  }
+
+  const handleToCart = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation() // Penting: biar gak malah masuk ke halaman detail produk
+    router.push('/shop/cart')
   }
 
   return (
-    <Link
-      href={`/shop/${product.id}`}
-      style={{ textDecoration: 'none', display: 'block' }}
-      className={`animate-fade-in-up stagger-${Math.min(index + 1, 6)}`}
-    >
-      {/* Card wrapper — whisper shadow + 12px radius */}
-      <div
-        style={{
-          background: 'var(--brand-white)',
-          borderRadius: 'var(--card-radius)',
-          boxShadow: 'var(--shadow-card)',
-          overflow: 'hidden',
-          display: 'flex',
-          flexDirection: 'column',
-          transition: 'box-shadow 0.25s ease, transform 0.25s ease',
-        }}
-        onMouseEnter={e => {
-          e.currentTarget.style.boxShadow = 'var(--shadow-card-hover)'
-          e.currentTarget.style.transform = 'translateY(-3px)'
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.boxShadow = 'var(--shadow-card)'
-          e.currentTarget.style.transform = 'translateY(0)'
-        }}
-      >
-        {/* Gambar — 3:4 portrait */}
-        <div style={{ position: 'relative', aspectRatio: '3/4', background: 'var(--brand-secondary)', overflow: 'hidden' }}>
-          {displayImage ? (
-            <img
-              src={displayImage}
-              alt={product.name}
-              className="img-fade"
-              style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.55s ease' }}
-              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.05)')}
-              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
-            />
-          ) : (
-            <div style={{
-              width: '100%', height: '100%',
-              background: 'linear-gradient(135deg, var(--brand-secondary), var(--brand-tertiary))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{ fontFamily: 'var(--font-heading)', color: 'var(--brand-accent)', fontSize: 40, fontStyle: 'italic', opacity: 0.35 }}>
-                S
-              </span>
-            </div>
-          )}
+    <Link href={`/shop/${product.id}`} className="block group h-full">
+      {/* PASTIKAN CARD TIDAK PUNYA PADDING DEFAULT (p-0) */}
+      <Card className="w-full max-w-sm rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 relative flex flex-col h-full border-[#E3CAA5] bg-[#FFFBE9] p-0">
 
-          {/* Stok habis overlay */}
-          {isUnavailable && (
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'rgba(44,24,16,0.52)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-            }}>
-              <span style={{
-                background: 'var(--brand-dark)', color: 'var(--brand-tertiary)',
-                padding: '0.3rem 0.8rem',
-                fontSize: '0.58rem', fontWeight: 700,
-                letterSpacing: 'var(--tracking-caps)', textTransform: 'uppercase',
-                borderRadius: 50,
-              }}>
-                Stok Habis
-              </span>
-            </div>
-          )}
-
-          {/* Kategori badge — analog Starbucks PDP breadcrumb label */}
-          <div style={{ position: 'absolute', top: 10, left: 10 }}>
-            <span style={{
-              background: 'rgba(255,250,245,0.9)',
-              color: 'var(--brand-muted)',
-              fontSize: '0.52rem',
-              fontWeight: 700,
-              letterSpacing: 'var(--tracking-caps)',
-              textTransform: 'uppercase',
-              padding: '0.22rem 0.6rem',
-              borderRadius: 50,
-              backdropFilter: 'blur(4px)',
-            }}>
-              {product.category}
-            </span>
-          </div>
-        </div>
-
-        {/* Info produk */}
-        <div style={{ padding: '0.85rem 1rem 1rem', display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
-
-          {/* Nama */}
-          <h3 style={{
-            fontFamily: 'var(--font-heading)',
-            color: 'var(--brand-dark)',
-            fontSize: '0.97rem',
-            fontWeight: 500,
-            lineHeight: 1.3,
-            letterSpacing: 'var(--tracking-tight)',
-          }}>
-            {product.name}
-          </h3>
-
-          {/* Deskripsi */}
-          {product.description && (
-            <p style={{
-              fontSize: '0.72rem',
-              color: 'var(--brand-muted)',
-              lineHeight: 1.5,
-              letterSpacing: 'var(--tracking-tight)',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-            }}>
-              {product.description}
-            </p>
-          )}
-
-          {/* Color swatches — analog Starbucks size-selector ring style */}
-          {product.colors && product.colors.length > 0 && (
-            <div
-              style={{ display: 'flex', flexWrap: 'wrap', gap: 5, marginTop: 2 }}
-              onClick={e => e.preventDefault()}
-            >
-              {product.colors.slice(0, 7).map(color => {
-                const stock = product.color_stocks?.find(cs => cs.color === color)?.stock ?? product.stock
-                const isActive = selectedColor === color
-                return (
-                  <button
-                    key={color}
-                    onClick={e => handleColorClick(e, color)}
-                    disabled={stock === 0}
-                    title={`${color}${stock === 0 ? ' — habis' : ''}`}
-                    style={{
-                      width: 16, height: 16,
-                      borderRadius: '50%',
-                      background: COLOR_HEX[color] ?? 'var(--brand-accent)',
-                      /* Ring aktif — analog Starbucks size-selector 2px solid ring */
-                      border: isActive
-                        ? '2px solid var(--brand-dark)'
-                        : color === 'Putih'
-                          ? '1.5px solid var(--brand-secondary)'
-                          : '1.5px solid transparent',
-                      outline: isActive ? '1.5px solid transparent' : 'none',
-                      boxShadow: isActive ? '0 0 0 2px var(--brand-white)' : 'none',
-                      cursor: stock === 0 ? 'not-allowed' : 'pointer',
-                      opacity: stock === 0 ? 0.3 : 1,
-                      transition: 'border 0.15s, box-shadow 0.15s, transform 0.15s',
-                      transform: isActive ? 'scale(1.2)' : 'scale(1)',
-                      flexShrink: 0,
-                      display: stock === 0 ? 'none' : '',
-                    }}
-                  />
-                )
-              })}
-              {product.colors.length > 7 && (
-                <span style={{
-                  fontSize: '0.58rem',
-                  color: 'var(--brand-accent)',
-                  alignSelf: 'center',
-                }}>
-                  +{product.colors.length - 7}
-                </span>
-              )}
-            </div>
-          )}
-
-          {/* Harga + tombol add */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mt-auto pt-2.5 border-t"
-            style={{ borderColor: 'var(--brand-secondary)' }}>
-            {/* Harga */}
-            <div>
-              <p style={{
-                fontFamily: 'var(--font-heading)',
-                color: 'var(--brand-accent)',
-                fontSize: '1rem',
-                fontWeight: 600,
-                letterSpacing: '-0.01em',
-              }}>
-                {formatRupiah(product.price)}
-              </p>
-
-              {/* Tampilan Sisa Stok */}
-              <div className="flex items-center gap-2 mt-1 flex-wrap">
-                {selectedColor && selectedStock > 0 && selectedStock <= 5 && (
-                  <p style={{ fontSize: '0.58rem', color: '#E65100', fontWeight: 600 }}>
-                    Sisa {selectedStock} pcs
-                  </p>
-                )}
+        {/* 🔥 PERBAIKAN UTAMA: Tambah rounded-t-2xl, w-full, shrink-0 */}
+        <div className="relative aspect-[3/4] w-full shrink-0 overflow-hidden bg-[#FAF5E8] rounded-t-2xl">
+          <AnimatePresence mode="wait">
+            {uniqueImages[currentImageIndex] ? (
+              <motion.img
+                key={currentImageIndex}
+                src={uniqueImages[currentImageIndex]}
+                alt={`${product.name} view ${currentImageIndex + 1}`}
+                // 🔥 KUNCI RAHASIA: absolute inset-0 memaksa foto nempel ujung ke ujung
+                className="absolute inset-0 w-full h-full object-cover"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+              />
+            ) : (
+              <div className="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-[#E3CAA5] to-[#CEAB93]">
+                <span className="text-4xl font-serif italic text-[#FFFBE9] opacity-50">S</span>
               </div>
-            </div>
+            )}
+          </AnimatePresence>
 
-            {/* Add to cart */}
-            {!isUnavailable && (
-              <button
-                onClick={handleAdd}
-                disabled={isUnavailable}
-                style={{
-                  padding: '0.4rem 0.9rem',
-                  borderRadius: 50,
-                  background: pressed
-                    ? 'var(--brand-secondary)'
-                    : inCart
-                      ? 'var(--brand-dark)'
-                      : 'var(--brand-accent)',
-                  color: 'var(--brand-white)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.58rem',
-                  fontWeight: 700,
-                  letterSpacing: 'var(--tracking-caps)',
-                  textTransform: 'uppercase',
-                  fontFamily: 'var(--font-sans)',
-                  transition: 'all 0.2s ease',
-                  whiteSpace: 'nowrap',
-                  transform: 'scale(1)',
-                  boxShadow: 'var(--shadow-card)',
-                }}
-                className="w-full sm:w-auto text-center justify-center flex"
-                onMouseDown={e => e.currentTarget.style.transform = 'scale(0.95)'}
-                onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
-                onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-              >
-                {pressed ? '✓ Ditambah' : inCart ? '✓ Di Keranjang' : '+ Keranjang'}
-              </button>
+          {isUnavailable && (
+            <div className="absolute inset-0 bg-[#2C1810]/50 flex items-center justify-center z-10">
+              <Badge className="bg-[#3D2B1F] hover:bg-[#3D2B1F] text-[#FFFBE9] font-bold tracking-widest uppercase border-none">
+                Stok Habis
+              </Badge>
+            </div>
+          )}
+
+          {uniqueImages.length > 1 && (
+            <div className="absolute inset-0 flex items-center justify-between p-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
+              <Button variant="secondary" size="icon" onClick={prevImage} className="h-8 w-8 rounded-full bg-[#FFFBE9]/80 backdrop-blur-sm text-[#3D2B1F] hover:bg-[#FFFBE9] shadow-sm border-none">
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+              <Button variant="secondary" size="icon" onClick={nextImage} className="h-8 w-8 rounded-full bg-[#FFFBE9]/80 backdrop-blur-sm text-[#3D2B1F] hover:bg-[#FFFBE9] shadow-sm border-none">
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {uniqueImages.length > 1 && (
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-20">
+              {uniqueImages.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => { e.preventDefault(); setCurrentImageIndex(index); }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${index === currentImageIndex ? "bg-[#3D2B1F] w-4" : "bg-[#3D2B1F]/30 w-1.5"}`}
+                />
+              ))}
+            </div>
+          )}
+
+          <div className="absolute top-3 left-3 flex flex-col gap-2 z-20 items-start">
+            <Badge variant="secondary" className="bg-[#FFFBE9]/90 hover:bg-[#FFFBE9] text-[#8C6E5A] text-[10px] font-bold uppercase tracking-wider backdrop-blur-sm shadow-sm border-none">
+              {product.category}
+            </Badge>
+            {product.badge && (
+              <Badge className="bg-[#AD8B73] hover:bg-[#8C6E5A] text-[#FFFBE9] text-[10px] font-bold uppercase tracking-wider shadow-sm border-none">
+                {product.badge}
+              </Badge>
+            )}
+            {hasDiscount && (
+              <Badge className="bg-[#C0392B] hover:bg-[#A93226] text-white text-[10px] font-bold uppercase tracking-wider shadow-sm border-none">
+                -{discountPercent}%
+              </Badge>
             )}
           </div>
+
+          {/* Tombol like -- masukin ke wishlist */}
+          {/* <Button
+            variant="secondary"
+            size="icon"
+            onClick={(e) => { e.preventDefault(); setIsWishlisted(!isWishlisted); }}
+            className="absolute top-3 right-3 h-8 w-8 rounded-full bg-[#FFFBE9]/80 hover:bg-[#FFFBE9] backdrop-blur-sm shadow-sm z-20 transition-transform hover:scale-110 border-none"
+          >
+            <Heart className={`h-4 w-4 transition-colors ${isWishlisted ? "fill-[#C0392B] text-[#C0392B]" : "text-[#8C6E5A]"}`} />
+          </Button> */}
         </div>
-      </div>
+
+        <CardContent className="p-4 flex flex-col flex-1 gap-4 border-none">
+          <div>
+            <h3 className="font-semibold line-clamp-1 text-lg" style={{ fontFamily: 'var(--font-heading)', color: '#3D2B1F' }}>
+              {product.name}
+            </h3>
+
+          </div>
+
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-bold" style={{ fontFamily: 'var(--font-heading)', color: hasDiscount ? '#C0392B' : '#AD8B73' }}>
+              {formatRupiah(product.sale_price || product.price)}
+            </span>
+            {hasDiscount && (
+              <span className="text-xs text-[#8C6E5A] line-through font-medium">
+                {formatRupiah(product.price)}
+              </span>
+            )}
+          </div>
+
+          {product.colors && product.colors.length > 0 && (
+            <div className="space-y-2 mt-auto">
+              <div className="text-[11px] font-semibold tracking-wider uppercase text-[#8C6E5A]">
+                Pilih Warna
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {product.colors.map((color) => {
+                  const isSelected = selectedColor === color
+                  const stock = product.color_stocks?.find(cs => cs.color === color)?.stock ?? product.stock
+                  const outOfStock = stock === 0
+
+                  return (
+                    <button
+                      key={color}
+                      onClick={(e) => { e.preventDefault(); if (!outOfStock) setSelectedColor(color); }}
+                      title={`${color}${outOfStock ? ' (Habis)' : ''}`}
+                      className={`w-6 h-6 rounded-full transition-all duration-300 ${isSelected ? "ring-2 ring-[#3D2B1F] ring-offset-2 ring-offset-[#FFFBE9] scale-110" : "ring-1 ring-[#E3CAA5] hover:ring-[#AD8B73]"
+                        } ${outOfStock ? "opacity-30 cursor-not-allowed" : "cursor-pointer"}`}
+                      style={{ backgroundColor: COLOR_HEX[color] || '#AD8B73' }}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          )}
+        </CardContent>
+
+        <CardFooter className="p-4 pt-0 border-none">
+          <Button
+            onClick={inCart ? handleToCart : handleAddToCart}
+            // 🔥 Tombol hanya mati jika sedang loading, atau barang benar-benar habis dan belum ada di keranjang
+            disabled={isAddingToCart || (!inCart && isUnavailable)}
+            className={`w-full h-11 rounded-xl flex items-center justify-center text-sm font-semibold transition-all duration-300 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed hover:opacity-90 ${isAddedToCart ? 'bg-[#2E7D32] hover:bg-[#276a2b]' :
+                inCart ? 'bg-[#3D2B1F] hover:bg-[#2a1d15]' :
+                  'bg-[#AD8B73] hover:bg-[#8C6E5A]'
+              } text-[#FFFBE9] border-none`}
+          >
+            {isAddingToCart ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Memproses...
+              </>
+            ) : isAddedToCart ? (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Berhasil Ditambah
+              </>
+            ) : inCart ? (
+              <>
+                {/* 🔥 Jika sudah di keranjang */}
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Pergi ke Keranjang
+              </>
+            ) : (
+              <>
+                {/* 🔥 Jika belum ada di keranjang */}
+                <ShoppingBag className="mr-2 h-4 w-4" />
+                Masukkan Keranjang
+              </>
+            )}
+          </Button>
+        </CardFooter>
+      </Card>
     </Link>
   )
 }

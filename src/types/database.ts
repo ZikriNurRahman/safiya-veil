@@ -37,9 +37,11 @@ export interface Product {
   sold: number
   base_sku?: string
   colors: string[]
-  color_stocks: ColorStock[]   // ← baru: stok per warna
-  color_images: ColorImage[]   // ← baru: gambar per warna
+  color_stocks: ColorStock[]
+  color_images: ColorImage[]
   created_at: string
+  sale_price?: number | null
+  badge?: string | null
 }
 
 export interface OrderItem {

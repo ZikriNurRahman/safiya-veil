@@ -1,10 +1,10 @@
 // src/app/layout.tsx
 // Root layout — font, metadata, Toaster global
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Lato } from 'next/font/google'
+import { Cormorant_Garamond, Lato, Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
-
+import { cn } from "@/lib/utils";
 
 // Font heading — Cormorant Garamond: elegan, serif, cocok untuk brand hijab premium
 const cormorant = Cormorant_Garamond({
@@ -15,11 +15,7 @@ const cormorant = Cormorant_Garamond({
 })
 
 // Font body — Lato: bersih, readabel, modern
-const lato = Lato({
-  subsets: ['latin'],
-  variable: '--font-sans',
-  weight: ['300', '400', '700'],
-})
+const inter = Inter({subsets:['latin'],variable:'--font-sans'})
 
 export const metadata: Metadata = {
   title: 'Safiya Veil — Grace in Style, Pure in Faith',
@@ -36,7 +32,7 @@ export default function RootLayout({
   return (
     <html
       lang="id"
-      className={`${cormorant.variable} ${lato.variable} h-full antialiased`}
+      className={cn("h-full", "antialiased", cormorant.variable, "font-sans", inter.variable)}
       style={{ fontFamily: 'var(--font-sans)' }}
       data-scroll-behavior="smooth"
     >
