@@ -43,20 +43,37 @@ export function usePOSCheckout() {
 
             // 2. Simpan Item & POTONG STOK
             for (const item of cart) {
-                await supabase.from('order_items').insert({
-                    order_id: orderData.id,
-                    product_id: item.product_id,
-                    product_name: item.name,
-                    unit_price: item.price,
-                    quantity: item.qty,
-                    notes: item.color || ''
-                })
+                // 1. Ambil data stok terkini
+                const { data: product } = await supabase
+                    .from('products')
+                    .select('stock, color_stocks, sold')
+                    .eq('id', item.product_id)
+                    .single()
 
-                await supabase.rpc('reduce_product_stock', {
-                    p_product_id: item.product_id,
-                    p_color: item.color || '',
-                    p_qty: item.qty
-                })
+                if (!product) continue
+
+                // 2. Hitung stok total baru
+                const newTotalStock = Math.max(0, (product.stock ?? 0) - item.qty)
+                const newSold = (product.sold ?? 0) + item.qty
+
+                // 3. Update color_stocks jika produk punya varian warna
+                let newColorStocks = product.color_stocks ?? []
+                if (item.color && Array.isArray(newColorStocks) && newColorStocks.length > 0) {
+                    newColorStocks = newColorStocks.map((cs: { color: string; stock: number }) =>
+                        cs.color === item.color
+                            ? { ...cs, stock: Math.max(0, cs.stock - item.qty) }
+                            : cs
+                    )
+                }
+
+                // 4. Update ke database
+                await supabase.from('products').update({
+                    stock: newTotalStock,
+                    sold: newSold,
+                    color_stocks: newColorStocks,
+                    // Otomatis set is_available = false kalau stok habis
+                    is_available: newTotalStock > 0,
+                }).eq('id', item.product_id)
             }
 
             // 3. Generate QRIS Midtrans
